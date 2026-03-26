@@ -40,13 +40,17 @@ class VariantRepository {
                     },
                 }
                 : {}));
-            return database_config_1.default.productVariant.findMany({
+            const queryOptions = {
                 where: finalWhere,
                 orderBy,
                 skip,
                 take,
-                select,
-                include: {
+            };
+            if (select) {
+                queryOptions.select = select;
+            }
+            else {
+                queryOptions.include = {
                     product: true,
                     attributes: {
                         include: {
@@ -54,8 +58,9 @@ class VariantRepository {
                             value: true,
                         },
                     },
-                },
-            });
+                };
+            }
+            return database_config_1.default.productVariant.findMany(queryOptions);
         });
     }
     countVariants(params) {

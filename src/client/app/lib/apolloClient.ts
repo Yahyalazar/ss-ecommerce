@@ -2,11 +2,27 @@ import { ApolloClient, InMemoryCache, HttpLink, from } from "@apollo/client";
 import { onError } from "@apollo/client/link/error";
 import { GRAPHQL_URL } from "./constants/config";
 
+// Validate GraphQL URL is configured
+if (!GRAPHQL_URL) {
+  console.error("🔴 CRITICAL: GRAPHQL_URL is not defined. Check environment variables.");
+}
+
+console.log("📡 Apollo Client Configuration:");
+console.log("  GRAPHQL_URL:", GRAPHQL_URL);
+console.log("  NODE_ENV:", process.env.NODE_ENV);
+
 const errorLink = onError(({ graphQLErrors, networkError }) => {
-  if (graphQLErrors) console.error("GraphQL Error", graphQLErrors);
-  if (networkError) console.error("Network Error", networkError);
+  if (graphQLErrors) {
+    console.error("🔴 GraphQL Errors:", graphQLErrors);
+  }
+  if (networkError) {
+    console.error("🔴 Network Error:", networkError);
+    if ('message' in networkError) {
+      console.error("   Message:", networkError.message);
+    }
+  }
 });
-console.log("GRAPHQL_URL: ", GRAPHQL_URL);
+
 export const initializeApollo = (initialState = null) => {
   const httpLink = new HttpLink({
     uri: GRAPHQL_URL,

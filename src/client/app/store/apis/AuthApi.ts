@@ -32,7 +32,7 @@ export const authApi = apiSlice.injectEndpoints({
       { name: string; email: string; password: string }
     >({
       query: (data) => ({
-        url: "/auth/register",
+        url: "/auth/sign-up",
         method: "POST",
         body: data,
       }),

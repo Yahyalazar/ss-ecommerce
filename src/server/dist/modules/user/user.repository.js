@@ -30,7 +30,7 @@ class UserRepository {
                     name: true,
                     email: true,
                     avatar: true,
-                    role: true
+                    role: true,
                 },
             });
         });
@@ -53,7 +53,7 @@ class UserRepository {
     countUsersByRole(role) {
         return __awaiter(this, void 0, void 0, function* () {
             return yield database_config_1.default.user.count({
-                where: { role: role }
+                where: { role: role },
             });
         });
     }

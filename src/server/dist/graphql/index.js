@@ -22,31 +22,48 @@ const schema_1 = require("./v1/schema");
 const prisma = new client_1.PrismaClient();
 function configureGraphQL(app) {
     return __awaiter(this, void 0, void 0, function* () {
-        const apolloServer = new server_1.ApolloServer({
-            schema: schema_1.combinedSchemas,
-        });
-        yield apolloServer.start();
-        app.use("/api/v1/graphql", (0, cors_1.default)({
-            origin: process.env.NODE_ENV === "production"
-                ? ["https://ecommerce-nu-rosy.vercel.app"]
-                : ["http://localhost:3000", "http://localhost:5173"],
-            credentials: true,
-            methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
-            allowedHeaders: [
-                "Content-Type",
-                "Authorization",
-                "X-Requested-With",
-                "Apollo-Require-Preflight",
-            ],
-        }), body_parser_1.default.json(), (0, express4_1.expressMiddleware)(apolloServer, {
-            context: (_a) => __awaiter(this, [_a], void 0, function* ({ req, res }) {
-                return ({
-                    req,
-                    res,
-                    prisma,
-                    user: req.user,
-                });
-            }),
-        }));
+        try {
+            console.log("🚀 [GraphQL] Creating Apollo server instance...");
+            const apolloServer = new server_1.ApolloServer({
+                schema: schema_1.combinedSchemas,
+            });
+            console.log("✅ [GraphQL] Apollo server created");
+            console.log("🚀 [GraphQL] Starting Apollo server...");
+            yield apolloServer.start();
+            console.log("✅ [GraphQL] Apollo server started");
+            console.log("🚀 [GraphQL] Setting up GraphQL middleware...");
+            app.use("/api/v1/graphql", (0, cors_1.default)({
+                origin: process.env.NODE_ENV === "production"
+                    ? ["https://ecommerce-nu-rosy.vercel.app"]
+                    : ["http://localhost:3000", "http://localhost:5173"],
+                credentials: true,
+                methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+                allowedHeaders: [
+                    "Content-Type",
+                    "Authorization",
+                    "X-Requested-With",
+                    "Apollo-Require-Preflight",
+                ],
+            }), body_parser_1.default.json(), (0, express4_1.expressMiddleware)(apolloServer, {
+                context: (_a) => __awaiter(this, [_a], void 0, function* ({ req, res }) {
+                    return ({
+                        req,
+                        res,
+                        prisma,
+                        user: req.user,
+                    });
+                }),
+            }));
+            console.log("✅ [GraphQL] GraphQL middleware configured");
+        }
+        catch (error) {
+            console.error("❌ [GraphQL] Configuration failed:");
+            console.error("Error:", error);
+            if (error instanceof Error) {
+                console.error("Message:", error.message);
+                console.error("Stack:", error.stack);
+            }
+            throw error;
+        }
     });
 }

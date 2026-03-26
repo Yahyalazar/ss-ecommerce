@@ -12,28 +12,51 @@ export default function AuthProvider({
   const [triggerGetMe] = useLazyGetMeQuery();
 
   useEffect(() => {
-    (async () => {
+    let isMounted = true;
+
+    const initAuth = async () => {
+      console.log("📡 [AuthProvider] Initializing auth check...");
       try {
+        console.log("📡 [AuthProvider] Calling triggerGetMe()...");
         const response = await triggerGetMe().unwrap();
-        // The backend returns { success, message, user }
+        
+        if (!isMounted) return;
+        
+        console.log("✅ [AuthProvider] Auth check succeeded. User:", response.user ? "present" : "not present");
+        
         const user = response.user;
         if (user) {
+          console.log("✅ [AuthProvider] User logged in:", user);
           dispatch(setUser({ user }));
         } else {
-          console.error("No user data in response");
+          console.warn("⚠️ [AuthProvider] No user data in response");
           dispatch(logout());
         }
       } catch (error: any) {
-        console.log("error: ", error);
-        // ✅ If it's a 401, user is unauthenticated — expected
+        if (!isMounted) return;
+        
+        console.error("🔴 [AuthProvider] Auth error:");
+        console.error("  Error object:", error);
+        console.error("  Error status:", error?.status);
+        console.error("  Error message:", error?.message);
+        
+        // If it's a 401, user is unauthenticated — expected
         if (error?.status === 401) {
+          console.log("📡 [AuthProvider] 401 - User not authenticated (expected)");
           dispatch(logout());
         } else {
-          console.error("Unexpected error during auth", error);
+          console.error("❌ [AuthProvider] Unexpected auth error:", error);
+          dispatch(logout());
         }
       }
-    })();
-  }, []);
+    };
+
+    initAuth();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [triggerGetMe, dispatch]);
 
   return <>{children}</>;
 }

@@ -123,11 +123,25 @@ export const createApp = async () => {
   app.use("/api", configureRoutes(io));
 
   // GraphQL setup
-  await configureGraphQL(app);
+  console.log("🚀 [APP] Starting GraphQL configuration...");
+  try {
+    console.log("🚀 [APP] Calling configureGraphQL()...");
+    await configureGraphQL(app);
+    console.log("✅ [APP] GraphQL initialized successfully");
+  } catch (error) {
+    console.error("❌ [APP] GraphQL setup failed:");
+    console.error("Error:", error);
+    if (error instanceof Error) {
+      console.error("Error message:", error.message);
+      console.error("Error stack:", error.stack);
+    }
+    throw error; // Re-throw to propagate to server.ts
+  }
 
   // Error & Logging
   app.use(globalError);
   app.use(logRequest);
 
+  console.log("✅ [APP] App created successfully");
   return { app, httpServer };
 };

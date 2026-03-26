@@ -1,0 +1,840 @@
+[2026-03-23T20:05:53.226Z] [31MERROR[39M: uncaughtException: Cannot find module '/app/src/infra/database/database.config'
+Require stack:
+- /app/dist/infra/passport/passport.js
+- /app/dist/app.js
+- /app/dist/server.js
+Error: Cannot find module '/app/src/infra/database/database.config'
+Require stack:
+- /app/dist/infra/passport/passport.js
+- /app/dist/app.js
+- /app/dist/server.js
+    at Function.<anonymous> (node:internal/modules/cjs/loader:1383:15)
+    at Module._resolveFilename (/app/node_modules/module-alias/index.js:49:29)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1025:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1030:22)
+    at Function._load (node:internal/modules/cjs/loader:1192:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:237:24)
+    at Module.require (node:internal/modules/cjs/loader:1463:12)
+    at require (node:internal/modules/helpers:147:16)
+    at Object.<anonymous> (/app/dist/infra/passport/passport.js:20:43)
+[2026-03-23T20:08:11.284Z] [31MERROR[39M: uncaughtException: Cannot find module '/app/src/infra/database/database.config'
+Require stack:
+- /app/dist/infra/passport/passport.js
+- /app/dist/app.js
+- /app/dist/server.js
+Error: Cannot find module '/app/src/infra/database/database.config'
+Require stack:
+- /app/dist/infra/passport/passport.js
+- /app/dist/app.js
+- /app/dist/server.js
+    at Function.<anonymous> (node:internal/modules/cjs/loader:1383:15)
+    at Module._resolveFilename (/app/node_modules/module-alias/index.js:49:29)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1025:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1030:22)
+    at Function._load (node:internal/modules/cjs/loader:1192:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:237:24)
+    at Module.require (node:internal/modules/cjs/loader:1463:12)
+    at require (node:internal/modules/helpers:147:16)
+    at Object.<anonymous> (/app/dist/infra/passport/passport.js:20:43)
+[2026-03-23T20:14:00.331Z] [31MERROR[39M: uncaughtException: Cannot find module '/app/src/infra/database/database.config'
+Require stack:
+- /app/dist/infra/passport/passport.js
+- /app/dist/app.js
+- /app/dist/server.js
+Error: Cannot find module '/app/src/infra/database/database.config'
+Require stack:
+- /app/dist/infra/passport/passport.js
+- /app/dist/app.js
+- /app/dist/server.js
+    at Function.<anonymous> (node:internal/modules/cjs/loader:1383:15)
+    at Module._resolveFilename (/app/node_modules/module-alias/index.js:49:29)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1025:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1030:22)
+    at Function._load (node:internal/modules/cjs/loader:1192:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:237:24)
+    at Module.require (node:internal/modules/cjs/loader:1463:12)
+    at require (node:internal/modules/helpers:147:16)
+    at Object.<anonymous> (/app/dist/infra/passport/passport.js:20:43)
+[2026-03-23T20:24:31.016Z] [31MERROR[39M: uncaughtException: Cannot find module '/app/src/infra/database/database.config'
+Require stack:
+- /app/dist/infra/passport/passport.js
+- /app/dist/app.js
+- /app/dist/server.js
+Error: Cannot find module '/app/src/infra/database/database.config'
+Require stack:
+- /app/dist/infra/passport/passport.js
+- /app/dist/app.js
+- /app/dist/server.js
+    at Function.<anonymous> (node:internal/modules/cjs/loader:1383:15)
+    at Module._resolveFilename (/app/node_modules/module-alias/index.js:49:29)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1025:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1030:22)
+    at Function._load (node:internal/modules/cjs/loader:1192:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:237:24)
+    at Module.require (node:internal/modules/cjs/loader:1463:12)
+    at require (node:internal/modules/helpers:147:16)
+    at Object.<anonymous> (/app/dist/infra/passport/passport.js:20:43)
+[2026-03-23T20:32:03.418Z] [31MERROR[39M: uncaughtException: Cannot find module '/app/src/infra/database/database.config'
+Require stack:
+- /app/dist/infra/passport/passport.js
+- /app/dist/app.js
+- /app/dist/server.js
+Error: Cannot find module '/app/src/infra/database/database.config'
+Require stack:
+- /app/dist/infra/passport/passport.js
+- /app/dist/app.js
+- /app/dist/server.js
+    at Function.<anonymous> (node:internal/modules/cjs/loader:1383:15)
+    at Module._resolveFilename (/app/node_modules/module-alias/index.js:49:29)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1025:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1030:22)
+    at Function._load (node:internal/modules/cjs/loader:1192:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:237:24)
+    at Module.require (node:internal/modules/cjs/loader:1463:12)
+    at require (node:internal/modules/helpers:147:16)
+    at Object.<anonymous> (/app/dist/infra/passport/passport.js:20:43)
+[2026-03-23T20:36:08.487Z] [31MERROR[39M: uncaughtException: Cannot find module '/app/src/infra/database/database.config'
+Require stack:
+- /app/dist/infra/passport/passport.js
+- /app/dist/app.js
+- /app/dist/server.js
+Error: Cannot find module '/app/src/infra/database/database.config'
+Require stack:
+- /app/dist/infra/passport/passport.js
+- /app/dist/app.js
+- /app/dist/server.js
+    at Function.<anonymous> (node:internal/modules/cjs/loader:1383:15)
+    at Module._resolveFilename (/app/node_modules/module-alias/index.js:49:29)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1025:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1030:22)
+    at Function._load (node:internal/modules/cjs/loader:1192:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:237:24)
+    at Module.require (node:internal/modules/cjs/loader:1463:12)
+    at require (node:internal/modules/helpers:147:16)
+    at Object.<anonymous> (/app/dist/infra/passport/passport.js:20:43)
+[2026-03-23T20:49:24.411Z] [31MERROR[39M: uncaughtException: Cannot find module '/app/src/infra/database/database.config'
+Require stack:
+- /app/dist/infra/passport/passport.js
+- /app/dist/app.js
+- /app/dist/server.js
+Error: Cannot find module '/app/src/infra/database/database.config'
+Require stack:
+- /app/dist/infra/passport/passport.js
+- /app/dist/app.js
+- /app/dist/server.js
+    at Function.<anonymous> (node:internal/modules/cjs/loader:1383:15)
+    at Module._resolveFilename (/app/node_modules/module-alias/index.js:49:29)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1025:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1030:22)
+    at Function._load (node:internal/modules/cjs/loader:1192:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:237:24)
+    at Module.require (node:internal/modules/cjs/loader:1463:12)
+    at require (node:internal/modules/helpers:147:16)
+    at Object.<anonymous> (/app/dist/infra/passport/passport.js:20:43)
+[2026-03-23T20:58:27.116Z] [31MERROR[39M: uncaughtException: Cannot find module '/app/src/infra/database/database.config'
+Require stack:
+- /app/dist/infra/passport/passport.js
+- /app/dist/app.js
+- /app/dist/server.js
+Error: Cannot find module '/app/src/infra/database/database.config'
+Require stack:
+- /app/dist/infra/passport/passport.js
+- /app/dist/app.js
+- /app/dist/server.js
+    at Function.<anonymous> (node:internal/modules/cjs/loader:1383:15)
+    at Module._resolveFilename (/app/node_modules/module-alias/index.js:49:29)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1025:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1030:22)
+    at Function._load (node:internal/modules/cjs/loader:1192:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:237:24)
+    at Module.require (node:internal/modules/cjs/loader:1463:12)
+    at require (node:internal/modules/helpers:147:16)
+    at Object.<anonymous> (/app/dist/infra/passport/passport.js:20:43)
+[2026-03-23T21:10:17.486Z] [31MERROR[39M: uncaughtException: Cannot find module '/app/src/infra/database/database.config'
+Require stack:
+- /app/dist/infra/passport/passport.js
+- /app/dist/app.js
+- /app/dist/server.js
+Error: Cannot find module '/app/src/infra/database/database.config'
+Require stack:
+- /app/dist/infra/passport/passport.js
+- /app/dist/app.js
+- /app/dist/server.js
+    at Function.<anonymous> (node:internal/modules/cjs/loader:1383:15)
+    at Module._resolveFilename (/app/node_modules/module-alias/index.js:49:29)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1025:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1030:22)
+    at Function._load (node:internal/modules/cjs/loader:1192:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:237:24)
+    at Module.require (node:internal/modules/cjs/loader:1463:12)
+    at require (node:internal/modules/helpers:147:16)
+    at Object.<anonymous> (/app/dist/infra/passport/passport.js:20:43)
+[2026-03-23T21:17:34.509Z] [31MERROR[39M: uncaughtException: Cannot find module '/app/src/infra/database/database.config'
+Require stack:
+- /app/dist/infra/passport/passport.js
+- /app/dist/app.js
+- /app/dist/server.js
+Error: Cannot find module '/app/src/infra/database/database.config'
+Require stack:
+- /app/dist/infra/passport/passport.js
+- /app/dist/app.js
+- /app/dist/server.js
+    at Function.<anonymous> (node:internal/modules/cjs/loader:1383:15)
+    at Module._resolveFilename (/app/node_modules/module-alias/index.js:49:29)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1025:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1030:22)
+    at Function._load (node:internal/modules/cjs/loader:1192:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:237:24)
+    at Module.require (node:internal/modules/cjs/loader:1463:12)
+    at require (node:internal/modules/helpers:147:16)
+    at Object.<anonymous> (/app/dist/infra/passport/passport.js:20:43)
+[2026-03-23T21:25:23.082Z] [31MERROR[39M: uncaughtException: Cannot find module '/app/src/infra/database/database.config'
+Require stack:
+- /app/dist/infra/passport/passport.js
+- /app/dist/app.js
+- /app/dist/server.js
+Error: Cannot find module '/app/src/infra/database/database.config'
+Require stack:
+- /app/dist/infra/passport/passport.js
+- /app/dist/app.js
+- /app/dist/server.js
+    at Function.<anonymous> (node:internal/modules/cjs/loader:1383:15)
+    at Module._resolveFilename (/app/node_modules/module-alias/index.js:49:29)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1025:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1030:22)
+    at Function._load (node:internal/modules/cjs/loader:1192:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:237:24)
+    at Module.require (node:internal/modules/cjs/loader:1463:12)
+    at require (node:internal/modules/helpers:147:16)
+    at Object.<anonymous> (/app/dist/infra/passport/passport.js:20:43)
+[2026-03-23T22:30:15.133Z] [31MERROR[39M: uncaughtException: Cannot find module '/app/src/infra/database/database.config'
+Require stack:
+- /app/dist/infra/passport/passport.js
+- /app/dist/app.js
+- /app/dist/server.js
+Error: Cannot find module '/app/src/infra/database/database.config'
+Require stack:
+- /app/dist/infra/passport/passport.js
+- /app/dist/app.js
+- /app/dist/server.js
+    at Function.<anonymous> (node:internal/modules/cjs/loader:1383:15)
+    at Module._resolveFilename (/app/node_modules/module-alias/index.js:49:29)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1025:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1030:22)
+    at Function._load (node:internal/modules/cjs/loader:1192:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:237:24)
+    at Module.require (node:internal/modules/cjs/loader:1463:12)
+    at require (node:internal/modules/helpers:147:16)
+    at Object.<anonymous> (/app/dist/infra/passport/passport.js:20:43)
+[2026-03-23T22:52:55.333Z] [31MERROR[39M: uncaughtException: Cannot find module '/app/src/infra/database/database.config'
+Require stack:
+- /app/dist/infra/passport/passport.js
+- /app/dist/app.js
+- /app/dist/server.js
+Error: Cannot find module '/app/src/infra/database/database.config'
+Require stack:
+- /app/dist/infra/passport/passport.js
+- /app/dist/app.js
+- /app/dist/server.js
+    at Function.<anonymous> (node:internal/modules/cjs/loader:1383:15)
+    at Module._resolveFilename (/app/node_modules/module-alias/index.js:49:29)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1025:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1030:22)
+    at Function._load (node:internal/modules/cjs/loader:1192:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:237:24)
+    at Module.require (node:internal/modules/cjs/loader:1463:12)
+    at require (node:internal/modules/helpers:147:16)
+    at Object.<anonymous> (/app/dist/infra/passport/passport.js:20:43)
+[2026-03-23T22:54:00.247Z] [31MERROR[39M: uncaughtException: Cannot find module '/app/src/infra/database/database.config'
+Require stack:
+- /app/dist/infra/passport/passport.js
+- /app/dist/app.js
+- /app/dist/server.js
+Error: Cannot find module '/app/src/infra/database/database.config'
+Require stack:
+- /app/dist/infra/passport/passport.js
+- /app/dist/app.js
+- /app/dist/server.js
+    at Function.<anonymous> (node:internal/modules/cjs/loader:1383:15)
+    at Module._resolveFilename (/app/node_modules/module-alias/index.js:49:29)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1025:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1030:22)
+    at Function._load (node:internal/modules/cjs/loader:1192:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:237:24)
+    at Module.require (node:internal/modules/cjs/loader:1463:12)
+    at require (node:internal/modules/helpers:147:16)
+    at Object.<anonymous> (/app/dist/infra/passport/passport.js:20:43)
+[2026-03-23T23:03:29.993Z] [31MERROR[39M: uncaughtException: Cannot find module '/app/src/infra/database/database.config'
+Require stack:
+- /app/dist/infra/passport/passport.js
+- /app/dist/app.js
+- /app/dist/server.js
+Error: Cannot find module '/app/src/infra/database/database.config'
+Require stack:
+- /app/dist/infra/passport/passport.js
+- /app/dist/app.js
+- /app/dist/server.js
+    at Function.<anonymous> (node:internal/modules/cjs/loader:1383:15)
+    at Module._resolveFilename (/app/node_modules/module-alias/index.js:49:29)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1025:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1030:22)
+    at Function._load (node:internal/modules/cjs/loader:1192:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:237:24)
+    at Module.require (node:internal/modules/cjs/loader:1463:12)
+    at require (node:internal/modules/helpers:147:16)
+    at Object.<anonymous> (/app/dist/infra/passport/passport.js:20:43)
+[2026-03-23T23:13:32.945Z] [31MERROR[39M: uncaughtException: Cannot find module '/app/src/infra/database/database.config'
+Require stack:
+- /app/dist/infra/passport/passport.js
+- /app/dist/app.js
+- /app/dist/server.js
+Error: Cannot find module '/app/src/infra/database/database.config'
+Require stack:
+- /app/dist/infra/passport/passport.js
+- /app/dist/app.js
+- /app/dist/server.js
+    at Function.<anonymous> (node:internal/modules/cjs/loader:1383:15)
+    at Module._resolveFilename (/app/node_modules/module-alias/index.js:49:29)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1025:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1030:22)
+    at Function._load (node:internal/modules/cjs/loader:1192:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:237:24)
+    at Module.require (node:internal/modules/cjs/loader:1463:12)
+    at require (node:internal/modules/helpers:147:16)
+    at Object.<anonymous> (/app/dist/infra/passport/passport.js:20:43)
+[2026-03-23T23:22:55.735Z] [31MERROR[39M: uncaughtException: Cannot find module '/app/src/infra/database/database.config'
+Require stack:
+- /app/dist/infra/passport/passport.js
+- /app/dist/app.js
+- /app/dist/server.js
+Error: Cannot find module '/app/src/infra/database/database.config'
+Require stack:
+- /app/dist/infra/passport/passport.js
+- /app/dist/app.js
+- /app/dist/server.js
+    at Function.<anonymous> (node:internal/modules/cjs/loader:1383:15)
+    at Module._resolveFilename (/app/node_modules/module-alias/index.js:49:29)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1025:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1030:22)
+    at Function._load (node:internal/modules/cjs/loader:1192:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:237:24)
+    at Module.require (node:internal/modules/cjs/loader:1463:12)
+    at require (node:internal/modules/helpers:147:16)
+    at Object.<anonymous> (/app/dist/infra/passport/passport.js:20:43)
+[2026-03-23T23:27:52.454Z] [31MERROR[39M: uncaughtException: Cannot find module '/app/src/infra/database/database.config'
+Require stack:
+- /app/dist/infra/passport/passport.js
+- /app/dist/app.js
+- /app/dist/server.js
+Error: Cannot find module '/app/src/infra/database/database.config'
+Require stack:
+- /app/dist/infra/passport/passport.js
+- /app/dist/app.js
+- /app/dist/server.js
+    at Function.<anonymous> (node:internal/modules/cjs/loader:1383:15)
+    at Module._resolveFilename (/app/node_modules/module-alias/index.js:49:29)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1025:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1030:22)
+    at Function._load (node:internal/modules/cjs/loader:1192:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:237:24)
+    at Module.require (node:internal/modules/cjs/loader:1463:12)
+    at require (node:internal/modules/helpers:147:16)
+    at Object.<anonymous> (/app/dist/infra/passport/passport.js:20:43)
+[2026-03-23T23:31:10.960Z] [31MERROR[39M: uncaughtException: Cannot find module '/app/src/infra/database/database.config'
+Require stack:
+- /app/dist/infra/passport/passport.js
+- /app/dist/app.js
+- /app/dist/server.js
+Error: Cannot find module '/app/src/infra/database/database.config'
+Require stack:
+- /app/dist/infra/passport/passport.js
+- /app/dist/app.js
+- /app/dist/server.js
+    at Function.<anonymous> (node:internal/modules/cjs/loader:1383:15)
+    at Module._resolveFilename (/app/node_modules/module-alias/index.js:49:29)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1025:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1030:22)
+    at Function._load (node:internal/modules/cjs/loader:1192:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:237:24)
+    at Module.require (node:internal/modules/cjs/loader:1463:12)
+    at require (node:internal/modules/helpers:147:16)
+    at Object.<anonymous> (/app/dist/infra/passport/passport.js:20:43)
+[2026-03-23T23:34:20.403Z] [31MERROR[39M: uncaughtException: Cannot find module '/app/src/infra/database/database.config'
+Require stack:
+- /app/dist/infra/passport/passport.js
+- /app/dist/app.js
+- /app/dist/server.js
+Error: Cannot find module '/app/src/infra/database/database.config'
+Require stack:
+- /app/dist/infra/passport/passport.js
+- /app/dist/app.js
+- /app/dist/server.js
+    at Function.<anonymous> (node:internal/modules/cjs/loader:1383:15)
+    at Module._resolveFilename (/app/node_modules/module-alias/index.js:49:29)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1025:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1030:22)
+    at Function._load (node:internal/modules/cjs/loader:1192:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:237:24)
+    at Module.require (node:internal/modules/cjs/loader:1463:12)
+    at require (node:internal/modules/helpers:147:16)
+    at Object.<anonymous> (/app/dist/infra/passport/passport.js:20:43)
+[2026-03-23T23:36:27.544Z] [31MERROR[39M: uncaughtException: Cannot find module '/app/src/infra/database/database.config'
+Require stack:
+- /app/dist/infra/passport/passport.js
+- /app/dist/app.js
+- /app/dist/server.js
+Error: Cannot find module '/app/src/infra/database/database.config'
+Require stack:
+- /app/dist/infra/passport/passport.js
+- /app/dist/app.js
+- /app/dist/server.js
+    at Function.<anonymous> (node:internal/modules/cjs/loader:1383:15)
+    at Module._resolveFilename (/app/node_modules/module-alias/index.js:49:29)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1025:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1030:22)
+    at Function._load (node:internal/modules/cjs/loader:1192:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:237:24)
+    at Module.require (node:internal/modules/cjs/loader:1463:12)
+    at require (node:internal/modules/helpers:147:16)
+    at Object.<anonymous> (/app/dist/infra/passport/passport.js:20:43)
+[2026-03-24T00:05:22.740Z] [31MERROR[39M: uncaughtException: Cannot find module '/app/src/infra/database/database.config'
+Require stack:
+- /app/dist/infra/passport/passport.js
+- /app/dist/app.js
+- /app/dist/server.js
+Error: Cannot find module '/app/src/infra/database/database.config'
+Require stack:
+- /app/dist/infra/passport/passport.js
+- /app/dist/app.js
+- /app/dist/server.js
+    at Function.<anonymous> (node:internal/modules/cjs/loader:1383:15)
+    at Module._resolveFilename (/app/node_modules/module-alias/index.js:49:29)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1025:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1030:22)
+    at Function._load (node:internal/modules/cjs/loader:1192:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:237:24)
+    at Module.require (node:internal/modules/cjs/loader:1463:12)
+    at require (node:internal/modules/helpers:147:16)
+    at Object.<anonymous> (/app/dist/infra/passport/passport.js:20:43)
+[2026-03-24T01:09:39.341Z] [31MERROR[39M: uncaughtException: Cannot find module '/app/src/infra/database/database.config'
+Require stack:
+- /app/dist/infra/passport/passport.js
+- /app/dist/app.js
+- /app/dist/server.js
+Error: Cannot find module '/app/src/infra/database/database.config'
+Require stack:
+- /app/dist/infra/passport/passport.js
+- /app/dist/app.js
+- /app/dist/server.js
+    at Function.<anonymous> (node:internal/modules/cjs/loader:1383:15)
+    at Module._resolveFilename (/app/node_modules/module-alias/index.js:49:29)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1025:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1030:22)
+    at Function._load (node:internal/modules/cjs/loader:1192:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:237:24)
+    at Module.require (node:internal/modules/cjs/loader:1463:12)
+    at require (node:internal/modules/helpers:147:16)
+    at Object.<anonymous> (/app/dist/infra/passport/passport.js:20:43)
+[2026-03-24T01:46:32.700Z] [31MERROR[39M: uncaughtException: Cannot find module '/app/src/infra/database/database.config'
+Require stack:
+- /app/dist/infra/passport/passport.js
+- /app/dist/app.js
+- /app/dist/server.js
+Error: Cannot find module '/app/src/infra/database/database.config'
+Require stack:
+- /app/dist/infra/passport/passport.js
+- /app/dist/app.js
+- /app/dist/server.js
+    at Function.<anonymous> (node:internal/modules/cjs/loader:1383:15)
+    at Module._resolveFilename (/app/node_modules/module-alias/index.js:49:29)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1025:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1030:22)
+    at Function._load (node:internal/modules/cjs/loader:1192:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:237:24)
+    at Module.require (node:internal/modules/cjs/loader:1463:12)
+    at require (node:internal/modules/helpers:147:16)
+    at Object.<anonymous> (/app/dist/infra/passport/passport.js:20:43)
+[2026-03-24T07:52:41.092Z] [31MERROR[39M: uncaughtException: Cannot find module '/app/src/infra/database/database.config'
+Require stack:
+- /app/dist/infra/passport/passport.js
+- /app/dist/app.js
+- /app/dist/server.js
+Error: Cannot find module '/app/src/infra/database/database.config'
+Require stack:
+- /app/dist/infra/passport/passport.js
+- /app/dist/app.js
+- /app/dist/server.js
+    at Function.<anonymous> (node:internal/modules/cjs/loader:1383:15)
+    at Module._resolveFilename (/app/node_modules/module-alias/index.js:49:29)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1025:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1030:22)
+    at Function._load (node:internal/modules/cjs/loader:1192:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:237:24)
+    at Module.require (node:internal/modules/cjs/loader:1463:12)
+    at require (node:internal/modules/helpers:147:16)
+    at Object.<anonymous> (/app/dist/infra/passport/passport.js:20:43)
+[2026-03-24T08:23:53.929Z] [31MERROR[39M: uncaughtException: Cannot find module '/app/src/infra/database/database.config'
+Require stack:
+- /app/dist/infra/passport/passport.js
+- /app/dist/app.js
+- /app/dist/server.js
+Error: Cannot find module '/app/src/infra/database/database.config'
+Require stack:
+- /app/dist/infra/passport/passport.js
+- /app/dist/app.js
+- /app/dist/server.js
+    at Function.<anonymous> (node:internal/modules/cjs/loader:1383:15)
+    at Module._resolveFilename (/app/node_modules/module-alias/index.js:49:29)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1025:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1030:22)
+    at Function._load (node:internal/modules/cjs/loader:1192:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:237:24)
+    at Module.require (node:internal/modules/cjs/loader:1463:12)
+    at require (node:internal/modules/helpers:147:16)
+    at Object.<anonymous> (/app/dist/infra/passport/passport.js:20:43)
+[2026-03-24T08:50:07.941Z] [31MERROR[39M: uncaughtException: Cannot find module '/app/src/infra/database/database.config'
+Require stack:
+- /app/dist/infra/passport/passport.js
+- /app/dist/app.js
+- /app/dist/server.js
+Error: Cannot find module '/app/src/infra/database/database.config'
+Require stack:
+- /app/dist/infra/passport/passport.js
+- /app/dist/app.js
+- /app/dist/server.js
+    at Function.<anonymous> (node:internal/modules/cjs/loader:1383:15)
+    at Module._resolveFilename (/app/node_modules/module-alias/index.js:49:29)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1025:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1030:22)
+    at Function._load (node:internal/modules/cjs/loader:1192:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:237:24)
+    at Module.require (node:internal/modules/cjs/loader:1463:12)
+    at require (node:internal/modules/helpers:147:16)
+    at Object.<anonymous> (/app/dist/infra/passport/passport.js:20:43)
+[2026-03-24T10:01:49.556Z] [31MERROR[39M: uncaughtException: Cannot find module '/app/src/infra/database/database.config'
+Require stack:
+- /app/dist/infra/passport/passport.js
+- /app/dist/app.js
+- /app/dist/server.js
+Error: Cannot find module '/app/src/infra/database/database.config'
+Require stack:
+- /app/dist/infra/passport/passport.js
+- /app/dist/app.js
+- /app/dist/server.js
+    at Function.<anonymous> (node:internal/modules/cjs/loader:1383:15)
+    at Module._resolveFilename (/app/node_modules/module-alias/index.js:49:29)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1025:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1030:22)
+    at Function._load (node:internal/modules/cjs/loader:1192:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:237:24)
+    at Module.require (node:internal/modules/cjs/loader:1463:12)
+    at require (node:internal/modules/helpers:147:16)
+    at Object.<anonymous> (/app/dist/infra/passport/passport.js:20:43)
+[2026-03-24T10:03:48.924Z] [31MERROR[39M: uncaughtException: Cannot find module '/app/src/infra/database/database.config'
+Require stack:
+- /app/dist/infra/passport/passport.js
+- /app/dist/app.js
+- /app/dist/server.js
+Error: Cannot find module '/app/src/infra/database/database.config'
+Require stack:
+- /app/dist/infra/passport/passport.js
+- /app/dist/app.js
+- /app/dist/server.js
+    at Function.<anonymous> (node:internal/modules/cjs/loader:1383:15)
+    at Module._resolveFilename (/app/node_modules/module-alias/index.js:49:29)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1025:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1030:22)
+    at Function._load (node:internal/modules/cjs/loader:1192:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:237:24)
+    at Module.require (node:internal/modules/cjs/loader:1463:12)
+    at require (node:internal/modules/helpers:147:16)
+    at Object.<anonymous> (/app/dist/infra/passport/passport.js:20:43)
+[2026-03-24T10:05:55.318Z] [31MERROR[39M: uncaughtException: Cannot find module '/app/src/infra/database/database.config'
+Require stack:
+- /app/dist/infra/passport/passport.js
+- /app/dist/app.js
+- /app/dist/server.js
+Error: Cannot find module '/app/src/infra/database/database.config'
+Require stack:
+- /app/dist/infra/passport/passport.js
+- /app/dist/app.js
+- /app/dist/server.js
+    at Function.<anonymous> (node:internal/modules/cjs/loader:1383:15)
+    at Module._resolveFilename (/app/node_modules/module-alias/index.js:49:29)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1025:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1030:22)
+    at Function._load (node:internal/modules/cjs/loader:1192:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:237:24)
+    at Module.require (node:internal/modules/cjs/loader:1463:12)
+    at require (node:internal/modules/helpers:147:16)
+    at Object.<anonymous> (/app/dist/infra/passport/passport.js:20:43)
+[2026-03-24T10:08:11.390Z] [31MERROR[39M: uncaughtException: Cannot find module '/app/src/infra/database/database.config'
+Require stack:
+- /app/dist/infra/passport/passport.js
+- /app/dist/app.js
+- /app/dist/server.js
+Error: Cannot find module '/app/src/infra/database/database.config'
+Require stack:
+- /app/dist/infra/passport/passport.js
+- /app/dist/app.js
+- /app/dist/server.js
+    at Function.<anonymous> (node:internal/modules/cjs/loader:1383:15)
+    at Module._resolveFilename (/app/node_modules/module-alias/index.js:49:29)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1025:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1030:22)
+    at Function._load (node:internal/modules/cjs/loader:1192:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:237:24)
+    at Module.require (node:internal/modules/cjs/loader:1463:12)
+    at require (node:internal/modules/helpers:147:16)
+    at Object.<anonymous> (/app/dist/infra/passport/passport.js:20:43)
+[2026-03-24T10:19:03.644Z] [31MERROR[39M: uncaughtException: Cannot find module '/app/src/infra/database/database.config'
+Require stack:
+- /app/dist/infra/passport/passport.js
+- /app/dist/app.js
+- /app/dist/server.js
+Error: Cannot find module '/app/src/infra/database/database.config'
+Require stack:
+- /app/dist/infra/passport/passport.js
+- /app/dist/app.js
+- /app/dist/server.js
+    at Function.<anonymous> (node:internal/modules/cjs/loader:1383:15)
+    at Module._resolveFilename (/app/node_modules/module-alias/index.js:49:29)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1025:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1030:22)
+    at Function._load (node:internal/modules/cjs/loader:1192:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:237:24)
+    at Module.require (node:internal/modules/cjs/loader:1463:12)
+    at require (node:internal/modules/helpers:147:16)
+    at Object.<anonymous> (/app/dist/infra/passport/passport.js:20:43)
+[2026-03-24T10:23:29.849Z] [31MERROR[39M: uncaughtException: Cannot find module '/app/src/infra/database/database.config'
+Require stack:
+- /app/dist/infra/passport/passport.js
+- /app/dist/app.js
+- /app/dist/server.js
+Error: Cannot find module '/app/src/infra/database/database.config'
+Require stack:
+- /app/dist/infra/passport/passport.js
+- /app/dist/app.js
+- /app/dist/server.js
+    at Function.<anonymous> (node:internal/modules/cjs/loader:1383:15)
+    at Module._resolveFilename (/app/node_modules/module-alias/index.js:49:29)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1025:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1030:22)
+    at Function._load (node:internal/modules/cjs/loader:1192:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:237:24)
+    at Module.require (node:internal/modules/cjs/loader:1463:12)
+    at require (node:internal/modules/helpers:147:16)
+    at Object.<anonymous> (/app/dist/infra/passport/passport.js:20:43)
+[2026-03-24T10:26:07.720Z] [31MERROR[39M: uncaughtException: Cannot find module '/app/src/infra/database/database.config'
+Require stack:
+- /app/dist/infra/passport/passport.js
+- /app/dist/app.js
+- /app/dist/server.js
+Error: Cannot find module '/app/src/infra/database/database.config'
+Require stack:
+- /app/dist/infra/passport/passport.js
+- /app/dist/app.js
+- /app/dist/server.js
+    at Function.<anonymous> (node:internal/modules/cjs/loader:1383:15)
+    at Module._resolveFilename (/app/node_modules/module-alias/index.js:49:29)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1025:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1030:22)
+    at Function._load (node:internal/modules/cjs/loader:1192:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:237:24)
+    at Module.require (node:internal/modules/cjs/loader:1463:12)
+    at require (node:internal/modules/helpers:147:16)
+    at Object.<anonymous> (/app/dist/infra/passport/passport.js:20:43)
+[2026-03-24T10:27:10.815Z] [31MERROR[39M: uncaughtException: Cannot find module '/app/src/infra/database/database.config'
+Require stack:
+- /app/dist/infra/passport/passport.js
+- /app/dist/app.js
+- /app/dist/server.js
+Error: Cannot find module '/app/src/infra/database/database.config'
+Require stack:
+- /app/dist/infra/passport/passport.js
+- /app/dist/app.js
+- /app/dist/server.js
+    at Function.<anonymous> (node:internal/modules/cjs/loader:1383:15)
+    at Module._resolveFilename (/app/node_modules/module-alias/index.js:49:29)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1025:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1030:22)
+    at Function._load (node:internal/modules/cjs/loader:1192:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:237:24)
+    at Module.require (node:internal/modules/cjs/loader:1463:12)
+    at require (node:internal/modules/helpers:147:16)
+    at Object.<anonymous> (/app/dist/infra/passport/passport.js:20:43)
+[2026-03-24T10:28:53.755Z] [31MERROR[39M: uncaughtException: Cannot find module '/app/src/infra/database/database.config'
+Require stack:
+- /app/dist/infra/passport/passport.js
+- /app/dist/app.js
+- /app/dist/server.js
+Error: Cannot find module '/app/src/infra/database/database.config'
+Require stack:
+- /app/dist/infra/passport/passport.js
+- /app/dist/app.js
+- /app/dist/server.js
+    at Function.<anonymous> (node:internal/modules/cjs/loader:1383:15)
+    at Module._resolveFilename (/app/node_modules/module-alias/index.js:49:29)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1025:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1030:22)
+    at Function._load (node:internal/modules/cjs/loader:1192:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:237:24)
+    at Module.require (node:internal/modules/cjs/loader:1463:12)
+    at require (node:internal/modules/helpers:147:16)
+    at Object.<anonymous> (/app/dist/infra/passport/passport.js:20:43)
+[2026-03-24T10:31:54.492Z] [31MERROR[39M: uncaughtException: Cannot find module '/app/src/infra/database/database.config'
+Require stack:
+- /app/dist/infra/passport/passport.js
+- /app/dist/app.js
+- /app/dist/server.js
+Error: Cannot find module '/app/src/infra/database/database.config'
+Require stack:
+- /app/dist/infra/passport/passport.js
+- /app/dist/app.js
+- /app/dist/server.js
+    at Function.<anonymous> (node:internal/modules/cjs/loader:1383:15)
+    at Module._resolveFilename (/app/node_modules/module-alias/index.js:49:29)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1025:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1030:22)
+    at Function._load (node:internal/modules/cjs/loader:1192:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:237:24)
+    at Module.require (node:internal/modules/cjs/loader:1463:12)
+    at require (node:internal/modules/helpers:147:16)
+    at Object.<anonymous> (/app/dist/infra/passport/passport.js:20:43)
+[2026-03-24T10:35:59.338Z] [31MERROR[39M: uncaughtException: Cannot find module '/app/src/infra/database/database.config'
+Require stack:
+- /app/dist/infra/passport/passport.js
+- /app/dist/app.js
+- /app/dist/server.js
+Error: Cannot find module '/app/src/infra/database/database.config'
+Require stack:
+- /app/dist/infra/passport/passport.js
+- /app/dist/app.js
+- /app/dist/server.js
+    at Function.<anonymous> (node:internal/modules/cjs/loader:1383:15)
+    at Module._resolveFilename (/app/node_modules/module-alias/index.js:49:29)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1025:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1030:22)
+    at Function._load (node:internal/modules/cjs/loader:1192:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:237:24)
+    at Module.require (node:internal/modules/cjs/loader:1463:12)
+    at require (node:internal/modules/helpers:147:16)
+    at Object.<anonymous> (/app/dist/infra/passport/passport.js:20:43)
+[2026-03-24T11:55:03.067Z] [31MERROR[39M: uncaughtException: Cannot find module 'D:\New folder\ss-ecommerce\src\server\src\infra\database\database.config'
+Require stack:
+- D:\New folder\ss-ecommerce\src\server\dist\infra\passport\passport.js
+- D:\New folder\ss-ecommerce\src\server\dist\app.js
+- D:\New folder\ss-ecommerce\src\server\dist\server.js
+Error: Cannot find module 'D:\New folder\ss-ecommerce\src\server\src\infra\database\database.config'
+Require stack:
+- D:\New folder\ss-ecommerce\src\server\dist\infra\passport\passport.js
+- D:\New folder\ss-ecommerce\src\server\dist\app.js
+- D:\New folder\ss-ecommerce\src\server\dist\server.js
+    at Function.<anonymous> (node:internal/modules/cjs/loader:1249:15)
+    at Module._resolveFilename (D:\New folder\ss-ecommerce\src\server\node_modules\module-alias\index.js:49:29)
+    at Function._load (node:internal/modules/cjs/loader:1075:27)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:219:24)
+    at Module.require (node:internal/modules/cjs/loader:1340:12)
+    at require (node:internal/modules/helpers:138:16)
+    at Object.<anonymous> (D:\New folder\ss-ecommerce\src\server\dist\infra\passport\passport.js:20:43)
+    at Module._compile (node:internal/modules/cjs/loader:1565:14)
+    at Object..js (node:internal/modules/cjs/loader:1708:10)
+[2026-03-24T11:56:46.376Z] [31MERROR[39M: uncaughtException: Cannot find module 'D:\New folder\ss-ecommerce\src\server\src\infra\database\database.config'
+Require stack:
+- D:\New folder\ss-ecommerce\src\server\dist\infra\passport\passport.js
+- D:\New folder\ss-ecommerce\src\server\dist\app.js
+- D:\New folder\ss-ecommerce\src\server\dist\server.js
+Error: Cannot find module 'D:\New folder\ss-ecommerce\src\server\src\infra\database\database.config'
+Require stack:
+- D:\New folder\ss-ecommerce\src\server\dist\infra\passport\passport.js
+- D:\New folder\ss-ecommerce\src\server\dist\app.js
+- D:\New folder\ss-ecommerce\src\server\dist\server.js
+    at Function.<anonymous> (node:internal/modules/cjs/loader:1249:15)
+    at Module._resolveFilename (D:\New folder\ss-ecommerce\src\server\node_modules\module-alias\index.js:49:29)
+    at Function._load (node:internal/modules/cjs/loader:1075:27)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:219:24)
+    at Module.require (node:internal/modules/cjs/loader:1340:12)
+    at require (node:internal/modules/helpers:138:16)
+    at Object.<anonymous> (D:\New folder\ss-ecommerce\src\server\dist\infra\passport\passport.js:20:43)
+    at Module._compile (node:internal/modules/cjs/loader:1565:14)
+    at Object..js (node:internal/modules/cjs/loader:1708:10)
+[2026-03-24T11:57:20.981Z] [31MERROR[39M: uncaughtException: Cannot find module 'D:\New folder\ss-ecommerce\src\server\src\infra\database\database.config'
+Require stack:
+- D:\New folder\ss-ecommerce\src\server\dist\infra\passport\passport.js
+- D:\New folder\ss-ecommerce\src\server\dist\app.js
+- D:\New folder\ss-ecommerce\src\server\dist\server.js
+Error: Cannot find module 'D:\New folder\ss-ecommerce\src\server\src\infra\database\database.config'
+Require stack:
+- D:\New folder\ss-ecommerce\src\server\dist\infra\passport\passport.js
+- D:\New folder\ss-ecommerce\src\server\dist\app.js
+- D:\New folder\ss-ecommerce\src\server\dist\server.js
+    at Function.<anonymous> (node:internal/modules/cjs/loader:1249:15)
+    at Module._resolveFilename (D:\New folder\ss-ecommerce\src\server\node_modules\module-alias\index.js:49:29)
+    at Function._load (node:internal/modules/cjs/loader:1075:27)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:219:24)
+    at Module.require (node:internal/modules/cjs/loader:1340:12)
+    at require (node:internal/modules/helpers:138:16)
+    at Object.<anonymous> (D:\New folder\ss-ecommerce\src\server\dist\infra\passport\passport.js:20:43)
+    at Module._compile (node:internal/modules/cjs/loader:1565:14)
+    at Object..js (node:internal/modules/cjs/loader:1708:10)
+[2026-03-25T15:33:51.125Z] [31MERROR[39M: uncaughtException: Cannot find module '/app/src/infra/database/database.config'
+Require stack:
+- /app/dist/infra/passport/passport.js
+- /app/dist/app.js
+- /app/dist/server.js
+Error: Cannot find module '/app/src/infra/database/database.config'
+Require stack:
+- /app/dist/infra/passport/passport.js
+- /app/dist/app.js
+- /app/dist/server.js
+    at Function.<anonymous> (node:internal/modules/cjs/loader:1383:15)
+    at Module._resolveFilename (/app/node_modules/module-alias/index.js:49:29)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1025:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1030:22)
+    at Function._load (node:internal/modules/cjs/loader:1192:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:237:24)
+    at Module.require (node:internal/modules/cjs/loader:1463:12)
+    at require (node:internal/modules/helpers:147:16)
+    at Object.<anonymous> (/app/dist/infra/passport/passport.js:20:43)

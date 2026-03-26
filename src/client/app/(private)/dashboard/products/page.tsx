@@ -97,12 +97,30 @@ const ProductsDashboard = () => {
     }
 
     try {
+      console.log("Submitting product to API...");
       await createProduct(payload).unwrap();
       setIsModalOpen(false);
       showToast("Product created successfully", "success");
-    } catch (err) {
-      console.error("Failed to create product:", err);
-      showToast("Failed to create product", "error");
+    } catch (err: unknown) {
+      const errorObject = err as any;
+      const errorMessage = 
+        errorObject?.data?.message || 
+        errorObject?.message || 
+        JSON.stringify(errorObject?.data) ||
+        "Unknown error occurred";
+      
+      // Check if it's a network error
+      if (errorObject?.status === "FETCH_ERROR") {
+        console.error("❌ NETWORK ERROR - API Server not responding");
+        console.error("Is http://localhost:5000/api/v1 running?");
+        console.error("Full error:", errorObject?.error);
+        showToast("API server not responding. Make sure the backend is running.", "error");
+      } else {
+        console.error("Failed to create product - Status:", errorObject?.status);
+        console.error("Failed to create product - Message:", errorMessage);
+        console.error("Failed to create product - Full error:", errorObject);
+        showToast(errorMessage || "Failed to create product", "error");
+      }
     }
   };
 
@@ -127,9 +145,17 @@ const ProductsDashboard = () => {
       setIsModalOpen(false);
       setEditingProduct(null);
       showToast("Product updated successfully", "success");
-    } catch (err) {
-      console.error("Failed to update product:", err);
-      showToast("Failed to update product", "error");
+    } catch (err: unknown) {
+      const errorObject = err as any;
+      const errorMessage = 
+        errorObject?.data?.message || 
+        errorObject?.message || 
+        JSON.stringify(errorObject?.data) ||
+        "Unknown error occurred";
+      console.error("Failed to update product - Status:", errorObject?.status);
+      console.error("Failed to update product - Message:", errorMessage);
+      console.error("Failed to update product - Full error:", errorObject);
+      showToast(errorMessage || "Failed to update product", "error");
     }
   };
 
@@ -145,9 +171,17 @@ const ProductsDashboard = () => {
       setIsConfirmModalOpen(false);
       setProductToDelete(null);
       showToast("Product deleted successfully", "success");
-    } catch (err) {
-      console.error("Failed to delete product:", err);
-      showToast("Failed to delete product", "error");
+    } catch (err: unknown) {
+      const errorObject = err as any;
+      const errorMessage = 
+        errorObject?.data?.message || 
+        errorObject?.message || 
+        JSON.stringify(errorObject?.data) ||
+        "Unknown error occurred";
+      console.error("Failed to delete product - Status:", errorObject?.status);
+      console.error("Failed to delete product - Message:", errorMessage);
+      console.error("Failed to delete product - Full error:", errorObject);
+      showToast(errorMessage || "Failed to delete product", "error");
     }
   };
 

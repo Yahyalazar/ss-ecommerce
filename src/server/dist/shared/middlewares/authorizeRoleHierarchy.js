@@ -15,7 +15,11 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const AppError_1 = __importDefault(require("../errors/AppError"));
 const database_config_1 = __importDefault(require("@/infra/database/database.config"));
 const getRoleHierarchy = (role) => {
-    const hierarchy = { USER: 1, ADMIN: 2, SUPERADMIN: 3 };
+    const hierarchy = {
+        USER: 1,
+        ADMIN: 2,
+        SUPERADMIN: 3,
+    };
     return hierarchy[role] || 0;
 };
 const authorizeRoleHierarchy = (minRequiredRole) => {
@@ -32,7 +36,7 @@ const authorizeRoleHierarchy = (minRequiredRole) => {
             // Get target user's role
             const targetUser = yield database_config_1.default.user.findUnique({
                 where: { id: targetUserId },
-                select: { role: true }
+                select: { role: true },
             });
             if (!targetUser) {
                 return next(new AppError_1.default(404, "Target user not found"));

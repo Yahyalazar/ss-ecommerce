@@ -128,7 +128,7 @@ const Sidebar = () => {
         {/* Navigation */}
         <nav className="flex flex-col space-y-2">
           {sections.map((section, idx) => (
-            <div key={section.title} className="mb-2">
+            <div key={section.title} className="mb-2" suppressHydrationWarning>
               {isOpen && (
                 <h3 className="text-xs font-medium uppercase tracking-wider text-gray-400 ml-4 mb-2">
                   {section.title}

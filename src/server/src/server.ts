@@ -1,5 +1,9 @@
 import { addAlias } from "module-alias";
 import path from "path";
+import dotenv from "dotenv";
+
+// Load environment variables FIRST
+dotenv.config();
 
 // Dynamically set module alias based on NODE_ENV
 const isProduction = process.env.NODE_ENV === "production";
@@ -8,21 +12,59 @@ const aliasPath = path.join(projectRoot, isProduction ? "dist" : "src");
 
 addAlias("@", aliasPath);
 
-import { createApp } from "./app";
-
 const PORT = process.env.PORT || 5000;
 
-async function bootstrap() {
-  const { httpServer } = await createApp();
+console.log("🚀 [SERVER] Starting initialization...");
+console.log("🚀 [SERVER] NODE_ENV:", process.env.NODE_ENV);
+console.log("🚀 [SERVER] PORT:", PORT);
 
-  httpServer.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
-  });
-
-  httpServer.on("error", (err) => {
-    console.error("Server error:", err);
+(async () => {
+  // Handle uncaught exceptions FIRST
+  process.on("uncaughtException", (err) => {
+    console.error("❌ [SERVER] Uncaught Exception:", err);
+    if (err instanceof Error) {
+      console.error("Stack:", err.stack);
+    }
     process.exit(1);
   });
-}
 
-bootstrap();
+  process.on("unhandledRejection", (reason, promise) => {
+    console.error("❌ [SERVER] Unhandled Rejection at:", promise);
+    console.error("Reason:", reason);
+    if (reason instanceof Error) {
+      console.error("Stack:", reason.stack);
+    }
+    process.exit(1);
+  });
+
+  try {
+    // Import app AFTER setting up error handlers
+    console.log("🚀 [SERVER] Importing createApp...");
+    const { createApp } = await import("./app");
+    console.log("✅ [SERVER] createApp imported successfully");
+    
+    console.log("🚀 [SERVER] Calling createApp()...");
+    const { httpServer } = await createApp();
+    console.log("✅ [SERVER] createApp() succeeded");
+
+    console.log("🚀 [SERVER] Starting HTTP server...");
+    httpServer.listen(PORT, () => {
+      console.log(`✅ [SERVER] Server is running on port ${PORT}`);
+    });
+
+    httpServer.on("error", (err) => {
+      console.error("❌ [SERVER] HTTP Server error:", err);
+      process.exit(1);
+    });
+  } catch (error) {
+    console.error("❌ [FATAL ERROR] Server startup failed:");
+    console.error("Error object:", error);
+    if (error instanceof Error) {
+      console.error("Error message:", error.message);
+      console.error("Error stack:", error.stack);
+    } else {
+      console.error("Error type:", typeof error);
+    }
+    process.exit(1);
+  }
+})();

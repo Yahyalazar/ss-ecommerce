@@ -109,10 +109,25 @@ const createApp = () => __awaiter(void 0, void 0, void 0, function* () {
     app.use((0, compression_1.default)());
     app.use("/api", (0, routes_1.configureRoutes)(io));
     // GraphQL setup
-    yield (0, graphql_1.configureGraphQL)(app);
+    console.log("🚀 [APP] Starting GraphQL configuration...");
+    try {
+        console.log("🚀 [APP] Calling configureGraphQL()...");
+        yield (0, graphql_1.configureGraphQL)(app);
+        console.log("✅ [APP] GraphQL initialized successfully");
+    }
+    catch (error) {
+        console.error("❌ [APP] GraphQL setup failed:");
+        console.error("Error:", error);
+        if (error instanceof Error) {
+            console.error("Error message:", error.message);
+            console.error("Error stack:", error.stack);
+        }
+        throw error; // Re-throw to propagate to server.ts
+    }
     // Error & Logging
     app.use(globalError_1.default);
     app.use(logRequest_1.logRequest);
+    console.log("✅ [APP] App created successfully");
     return { app, httpServer };
 });
 exports.createApp = createApp;

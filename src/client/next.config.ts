@@ -23,7 +23,12 @@ const nextConfig: NextConfig = {
       "res.cloudinary.com",
       "pbs.twimg.com",
       "store.storeimages.cdn-apple.com",
+      "images.unsplash.com",
+      "picsum.photos",
+      "i.pravatar.cc",
+      "api.dicebear.com",
     ],
+    unoptimized: process.env.NODE_ENV === "development", // Disable optimization in dev for easier debugging
   },
 };
 
