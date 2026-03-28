@@ -8,7 +8,7 @@ const upload = (0, multer_1.default)({
     storage: multer_1.default.memoryStorage(),
     limits: {
         fileSize: 10 * 1024 * 1024, // 10MB
-        files: 5, // Maximum number of files
+        files: 10, // Maximum number of files
     },
     fileFilter: (req, file, cb) => {
         const allowedTypes = ["image/jpeg", "image/png", "image/gif", "image/webp"];

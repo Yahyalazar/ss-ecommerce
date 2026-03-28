@@ -13,7 +13,7 @@ import compression from "compression";
 import passport from "passport";
 import session from "express-session";
 import { RedisStore } from "connect-redis";
-import redisClient from "./infra/cache/redis";
+import redisClient, { ensureRedisConnection } from "./infra/cache/redis";
 import configurePassport from "./infra/passport/passport";
 import { cookieParserOptions } from "./shared/constants";
 import globalError from "./shared/errors/globalError";
@@ -61,21 +61,28 @@ export const createApp = async () => {
   app.use(cookieParser(process.env.COOKIE_SECRET, cookieParserOptions));
 
   app.set("trust proxy", 1);
-  app.use(
-    session({
-      store: new RedisStore({ client: redisClient }),
-      secret: process.env.SESSION_SECRET!,
-      resave: false,
-      saveUninitialized: true, // Keeps guest sessionId from the first request
-      proxy: true, // Ensures secure cookies work with proxy
-      cookie: {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production", // true in prod
-        sameSite: "none", // Required for cross-site cookies
-        maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
-      },
-    })
-  );
+  const useRedisSessionStore =
+    !!redisClient && (await ensureRedisConnection());
+  const sessionConfig: session.SessionOptions = {
+    secret: process.env.SESSION_SECRET!,
+    resave: false,
+    saveUninitialized: true, // Keeps guest sessionId from the first request
+    proxy: true, // Ensures secure cookies work with proxy
+    cookie: {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production", // true in prod
+      sameSite: "none", // Required for cross-site cookies
+      maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
+    },
+  };
+
+  if (useRedisSessionStore && redisClient) {
+    sessionConfig.store = new RedisStore({ client: redisClient });
+  } else {
+    console.warn("[SESSION] Redis unavailable. Using in-memory session store.");
+  }
+
+  app.use(session(sessionConfig));
   app.use(passport.initialize());
   app.use(passport.session());
   configurePassport();

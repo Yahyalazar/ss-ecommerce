@@ -1,4 +1,37 @@
 "use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -14,7 +47,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const database_config_1 = require("../infra/database/database.config");
-const redis_1 = __importDefault(require("../infra/cache/redis"));
+const redis_1 = __importStar(require("../infra/cache/redis"));
 const logger_1 = __importDefault(require("../infra/winston/logger"));
 const router = (0, express_1.Router)();
 // Basic health check
@@ -58,8 +91,14 @@ router.get("/health/detailed", (req, res) => __awaiter(void 0, void 0, void 0, f
     }
     try {
         // Check Redis connection
-        yield redis_1.default.ping();
-        health.dependencies.redis = "connected";
+        if (redis_1.default && (yield (0, redis_1.ensureRedisConnection)())) {
+            yield redis_1.default.ping();
+            health.dependencies.redis = "connected";
+        }
+        else {
+            health.dependencies.redis = "disconnected";
+            health.status = "DEGRADED";
+        }
     }
     catch (error) {
         health.dependencies.redis = "disconnected";
@@ -74,6 +113,9 @@ router.get("/ready", (req, res) => __awaiter(void 0, void 0, void 0, function* (
     try {
         // Check if all critical services are ready
         yield (0, database_config_1.connectDB)();
+        if (!redis_1.default || !(yield (0, redis_1.ensureRedisConnection)())) {
+            throw new Error("Redis unavailable");
+        }
         yield redis_1.default.ping();
         res.status(200).json({
             status: "ready",

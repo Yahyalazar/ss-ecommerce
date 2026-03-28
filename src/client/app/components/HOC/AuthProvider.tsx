@@ -34,17 +34,21 @@ export default function AuthProvider({
         }
       } catch (error: any) {
         if (!isMounted) return;
-        
-        console.error("🔴 [AuthProvider] Auth error:");
-        console.error("  Error object:", error);
-        console.error("  Error status:", error?.status);
-        console.error("  Error message:", error?.message);
-        
+
         // If it's a 401, user is unauthenticated — expected
         if (error?.status === 401) {
-          console.log("📡 [AuthProvider] 401 - User not authenticated (expected)");
+          console.log(
+            "📡 [AuthProvider] No authenticated session found. Continuing as guest."
+          );
           dispatch(logout());
         } else {
+          console.error("🔴 [AuthProvider] Auth error:");
+          console.error("  Error object:", error);
+          console.error("  Error status:", error?.status);
+          console.error(
+            "  Error message:",
+            error?.data?.message || error?.error || error?.message
+          );
           console.error("❌ [AuthProvider] Unexpected auth error:", error);
           dispatch(logout());
         }

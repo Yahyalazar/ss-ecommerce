@@ -7,6 +7,7 @@ import {
   Control,
   FieldErrors,
   UseFormSetValue,
+  UseFormWatch,
 } from "react-hook-form";
 import { useEffect, useState, useCallback } from "react";
 
@@ -18,6 +19,8 @@ interface ImageUploaderProps {
   name?: string;
   maxFiles?: number;
   disabled?: boolean;
+  watch?: UseFormWatch<any>;
+  existingImages?: string[];
 }
 
 interface ImagePreview {
@@ -33,8 +36,15 @@ const ImageUploader = ({
   name = "images",
   maxFiles = 5,
   disabled = false,
+  existingImages = [],
 }: ImageUploaderProps) => {
   const [previews, setPreviews] = useState<ImagePreview[]>([]);
+
+  useEffect(() => {
+    // Existing remote images are handled by the parent payload logic.
+    // This uploader only previews newly added local files.
+    if (existingImages.length === 0) return;
+  }, [existingImages]);
 
   // Cleanup blob URLs on unmount
   useEffect(() => {

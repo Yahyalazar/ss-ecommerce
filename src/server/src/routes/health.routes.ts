@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { connectDB } from "../infra/database/database.config";
-import redisClient from "../infra/cache/redis";
+import redisClient, { ensureRedisConnection } from "../infra/cache/redis";
 import logger from "../infra/winston/logger";
 
 const router = Router();
@@ -48,8 +48,13 @@ router.get("/health/detailed", async (req, res) => {
 
   try {
     // Check Redis connection
-    await redisClient.ping();
-    health.dependencies.redis = "connected";
+    if (redisClient && (await ensureRedisConnection())) {
+      await redisClient.ping();
+      health.dependencies.redis = "connected";
+    } else {
+      health.dependencies.redis = "disconnected";
+      health.status = "DEGRADED";
+    }
   } catch (error) {
     health.dependencies.redis = "disconnected";
     health.status = "DEGRADED";
@@ -65,6 +70,9 @@ router.get("/ready", async (req, res) => {
   try {
     // Check if all critical services are ready
     await connectDB();
+    if (!redisClient || !(await ensureRedisConnection())) {
+      throw new Error("Redis unavailable");
+    }
     await redisClient.ping();
 
     res.status(200).json({

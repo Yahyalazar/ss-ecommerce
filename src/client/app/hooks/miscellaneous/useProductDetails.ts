@@ -121,6 +121,7 @@ export const useProductDetail = () => {
     payload.append("categoryId", data.categoryId || "");
 
     // Handle variants
+    let imageIndex = 0;
     data.variants.forEach((variant, index) => {
       payload.append(`variants[${index}][id]`, variant.id || "");
       payload.append(`variants[${index}][sku]`, variant.sku || "");
@@ -139,14 +140,30 @@ export const useProductDetail = () => {
         `variants[${index}][attributes]`,
         JSON.stringify(variant.attributes || [])
       );
-      // Handle new image uploads
-      if (variant.images && variant.images.length > 0) {
-        variant.images.forEach((file) => {
-          if (file instanceof File) {
-            payload.append(`images`, file);
+
+      const existingImages = (variant.images || []).filter(
+        (image): image is string => typeof image === "string"
+      );
+      payload.append(
+        `variants[${index}][images]`,
+        JSON.stringify(existingImages)
+      );
+
+      const imageIndexes = (variant.images || [])
+        .map((image) => {
+          if (image instanceof File) {
+            payload.append("images", image);
+            return imageIndex++;
           }
-        });
-      }
+
+          return null;
+        })
+        .filter((idx): idx is number => idx !== null);
+
+      payload.append(
+        `variants[${index}][imageIndexes]`,
+        JSON.stringify(imageIndexes)
+      );
     });
 
     try {

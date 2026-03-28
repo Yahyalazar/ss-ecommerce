@@ -8,7 +8,7 @@ export interface CategoryFormData {
   id?: string;
   name: string;
   description?: string;
-  images?: string[];
+  images?: (string | File)[];
   slug?: string;
 }
 

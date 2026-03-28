@@ -169,20 +169,33 @@ export class ProductController {
 
       // Parse variants from req.body
       let parsedVariants: any[] = [];
-      for (const key in req.body) {
-        if (key.startsWith("variants[")) {
-          const match = key.match(/^variants\[(\d+)\]\[(\w+)\]$/);
-          if (match) {
-            const index = parseInt(match[1]);
-            const field = match[2];
-            if (!parsedVariants[index]) {
-              parsedVariants[index] = {};
-            }
-            parsedVariants[index][field] = req.body[key];
-          }
+      if (req.body.variants) {
+        try {
+          parsedVariants =
+            typeof req.body.variants === "string"
+              ? JSON.parse(req.body.variants)
+              : req.body.variants;
+        } catch {
+          throw new AppError(400, "Invalid variants payload");
         }
       }
-      parsedVariants = parsedVariants.filter(Boolean);
+
+      if (!Array.isArray(parsedVariants) || parsedVariants.length === 0) {
+        for (const key in req.body) {
+          if (key.startsWith("variants[")) {
+            const match = key.match(/^variants\[(\d+)\]\[(\w+)\]$/);
+            if (match) {
+              const index = parseInt(match[1], 10);
+              const field = match[2];
+              if (!parsedVariants[index]) {
+                parsedVariants[index] = {};
+              }
+              parsedVariants[index][field] = req.body[key];
+            }
+          }
+        }
+        parsedVariants = parsedVariants.filter(Boolean);
+      }
 
       // Process files for each variant
       const files = (req.files as Express.Multer.File[]) || [];
@@ -194,16 +207,13 @@ export class ProductController {
               let imageIndexes: number[] = [];
               try {
                 imageIndexes = variant.imageIndexes
-                  ? JSON.parse(variant.imageIndexes)
+                  ? typeof variant.imageIndexes === "string"
+                    ? JSON.parse(variant.imageIndexes)
+                    : variant.imageIndexes
                   : [];
                 if (Array.isArray(imageIndexes)) {
                   variantFiles = imageIndexes
-                    .map((idx) =>
-                      files.find(
-                        (f) =>
-                          f.fieldname === `images` && files.indexOf(f) === idx
-                      )
-                    )
+                    .map((idx) => files[idx])
                     .filter(Boolean) as Express.Multer.File[];
                 }
               } catch {
@@ -251,17 +261,23 @@ export class ProductController {
               ];
 
               // Validate other fields
+              const normalizedPrice = Number(variant.price);
+              const normalizedStock = Number(variant.stock);
+              const normalizedLowStockThreshold = Number(
+                variant.lowStockThreshold ?? 10
+              );
+
               if (
                 !variant.sku ||
-                typeof variant.price !== "number" ||
-                typeof variant.stock !== "number"
+                Number.isNaN(normalizedPrice) ||
+                Number.isNaN(normalizedStock)
               ) {
                 throw new AppError(
                   400,
                   `Variant at index ${index} must have sku, price, and stock`
                 );
               }
-              if (variant.stock < 0) {
+              if (normalizedStock < 0) {
                 throw new AppError(
                   400,
                   `Variant at index ${index} must have a valid non-negative stock number`
@@ -309,6 +325,11 @@ export class ProductController {
 
               return {
                 ...variant,
+                price: normalizedPrice,
+                stock: normalizedStock,
+                lowStockThreshold: Number.isNaN(normalizedLowStockThreshold)
+                  ? 10
+                  : normalizedLowStockThreshold,
                 images: imageUrls,
                 attributes: parsedAttributes,
               };

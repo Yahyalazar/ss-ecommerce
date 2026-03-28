@@ -135,7 +135,51 @@ const ProductsDashboard = () => {
     payload.append("isBestSeller", data.isBestSeller.toString());
     payload.append("isFeatured", data.isFeatured.toString());
     payload.append("categoryId", data.categoryId || "");
-    payload.append("variants", JSON.stringify(data.variants));
+
+    let imageIndex = 0;
+    data.variants.forEach((variant, index) => {
+      payload.append(`variants[${index}][id]`, variant.id || "");
+      payload.append(`variants[${index}][sku]`, variant.sku || "");
+      payload.append(`variants[${index}][price]`, variant.price.toString());
+      payload.append(`variants[${index}][stock]`, variant.stock.toString());
+      payload.append(
+        `variants[${index}][lowStockThreshold]`,
+        variant.lowStockThreshold?.toString() || "10"
+      );
+      payload.append(`variants[${index}][barcode]`, variant.barcode || "");
+      payload.append(
+        `variants[${index}][warehouseLocation]`,
+        variant.warehouseLocation || ""
+      );
+      payload.append(
+        `variants[${index}][attributes]`,
+        JSON.stringify(variant.attributes || [])
+      );
+
+      const existingImages = variant.images.filter(
+        (image): image is string => typeof image === "string"
+      );
+      payload.append(
+        `variants[${index}][images]`,
+        JSON.stringify(existingImages)
+      );
+
+      const imageIndexes = variant.images
+        .map((image) => {
+          if (image instanceof File) {
+            payload.append("images", image);
+            return imageIndex++;
+          }
+
+          return null;
+        })
+        .filter((idx): idx is number => idx !== null);
+
+      payload.append(
+        `variants[${index}][imageIndexes]`,
+        JSON.stringify(imageIndexes)
+      );
+    });
 
     try {
       await updateProduct({
@@ -149,6 +193,7 @@ const ProductsDashboard = () => {
       const errorObject = err as any;
       const errorMessage = 
         errorObject?.data?.message || 
+        errorObject?.error ||
         errorObject?.message || 
         JSON.stringify(errorObject?.data) ||
         "Unknown error occurred";

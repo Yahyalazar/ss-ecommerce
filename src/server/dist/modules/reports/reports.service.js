@@ -1,4 +1,37 @@
 "use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -8,13 +41,10 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ReportsService = void 0;
 const date_fns_1 = require("date-fns");
-const redis_1 = __importDefault(require("@/infra/cache/redis"));
+const redis_1 = __importStar(require("@/infra/cache/redis"));
 const client_1 = require("@prisma/client");
 class ReportsService {
     constructor(reportsRepository, analyticsRepository, productRepository) {
@@ -28,7 +58,9 @@ class ReportsService {
             var _a;
             const { timePeriod, year, startDate, endDate } = query;
             const cacheKey = `reports:sales:${timePeriod}:${year || "all"}:${(startDate === null || startDate === void 0 ? void 0 : startDate.toISOString()) || "none"}:${(endDate === null || endDate === void 0 ? void 0 : endDate.toISOString()) || "none"}`;
-            const cachedData = yield redis_1.default.get(cacheKey);
+            const cachedData = redis_1.default && (yield (0, redis_1.ensureRedisConnection)())
+                ? yield redis_1.default.get(cacheKey).catch(() => null)
+                : null;
             if (cachedData) {
                 return JSON.parse(cachedData);
             }
@@ -91,7 +123,11 @@ class ReportsService {
                 byCategory,
                 topProducts,
             };
-            yield redis_1.default.setex(cacheKey, 300, JSON.stringify(result));
+            if (redis_1.default && (yield (0, redis_1.ensureRedisConnection)())) {
+                yield redis_1.default
+                    .setex(cacheKey, 300, JSON.stringify(result))
+                    .catch(() => undefined);
+            }
             return result;
         });
     }
@@ -99,7 +135,9 @@ class ReportsService {
         return __awaiter(this, void 0, void 0, function* () {
             const { timePeriod, year, startDate, endDate } = query;
             const cacheKey = `reports:user_retention:${timePeriod}:${year || "all"}:${(startDate === null || startDate === void 0 ? void 0 : startDate.toISOString()) || "none"}:${(endDate === null || endDate === void 0 ? void 0 : endDate.toISOString()) || "none"}`;
-            const cachedData = yield redis_1.default.get(cacheKey);
+            const cachedData = redis_1.default && (yield (0, redis_1.ensureRedisConnection)())
+                ? yield redis_1.default.get(cacheKey).catch(() => null)
+                : null;
             if (cachedData) {
                 return JSON.parse(cachedData);
             }
@@ -147,7 +185,11 @@ class ReportsService {
                 lifetimeValue: Number(lifetimeValue.toFixed(2)),
                 topUsers: topCustomers,
             };
-            yield redis_1.default.setex(cacheKey, 300, JSON.stringify(result));
+            if (redis_1.default && (yield (0, redis_1.ensureRedisConnection)())) {
+                yield redis_1.default
+                    .setex(cacheKey, 300, JSON.stringify(result))
+                    .catch(() => undefined);
+            }
             return result;
         });
     }

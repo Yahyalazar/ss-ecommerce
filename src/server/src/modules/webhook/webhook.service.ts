@@ -6,7 +6,7 @@ import {
 } from "@prisma/client";
 import stripe from "@/infra/payment/stripe";
 import AppError from "@/shared/errors/AppError";
-import redisClient from "@/infra/cache/redis";
+import redisClient, { ensureRedisConnection } from "@/infra/cache/redis";
 import { makeLogsService } from "../logs/logs.factory";
 import { CartService } from "../cart/cart.service";
 import { CartRepository } from "../cart/cart.repository";
@@ -168,9 +168,13 @@ export class WebhookService {
     });
 
     // Post-transaction actions
-    await redisClient.del("dashboard:year-range");
-    const keys = await redisClient.keys("dashboard:stats:*");
-    if (keys.length > 0) await redisClient.del(keys);
+    if (redisClient && (await ensureRedisConnection())) {
+      await redisClient.del("dashboard:year-range").catch(() => undefined);
+      const keys = await redisClient.keys("dashboard:stats:*").catch(() => []);
+      if (keys.length > 0) {
+        await redisClient.del(keys).catch(() => undefined);
+      }
+    }
 
     this.cartService.logCartEvent(cart.id, "CHECKOUT_COMPLETED", userId);
 

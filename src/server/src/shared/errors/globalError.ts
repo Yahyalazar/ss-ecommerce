@@ -53,14 +53,30 @@ const errorHandlers: Record<string | number, ErrorHandler> = {
       500,
       "Unexpected internal server error. Please try again later."
     ),
+  MulterError: (err) => {
+    switch (err.code) {
+      case "LIMIT_FILE_SIZE":
+        return new AppError(400, "Each uploaded file must be 10MB or smaller.");
+      case "LIMIT_FILE_COUNT":
+        return new AppError(400, "Too many files uploaded.");
+      case "LIMIT_UNEXPECTED_FILE":
+        return new AppError(400, "Unexpected upload field received.");
+      default:
+        return new AppError(400, err.message || "Invalid file upload.");
+    }
+  },
 };
 
 const globalError = async (
   err: CustomError | AppError,
   req: Request,
   res: Response,
-  _next: NextFunction
+  next: NextFunction
 ): Promise<void> => {
+  if (res.headersSent) {
+    return next(err);
+  }
+
   let error: AppError =
     err instanceof AppError ? err : new AppError(500, err.message);
 
@@ -106,14 +122,22 @@ const globalError = async (
   const end = Date.now();
 
   // 🛠️ Logs Service Integration
-  await logsService.error(`Error: ${error.message}`, {
-    statusCode: error.statusCode,
-    stack: err.stack,
-    method: req.method,
-    url: req.originalUrl,
-    userId: (req as any)?.user?.id || null,
-    timePeriod: end - start,
-  });
+  try {
+    await logsService.error(`Error: ${error.message}`, {
+      statusCode: error.statusCode,
+      stack: err.stack,
+      method: req.method,
+      url: req.originalUrl,
+      userId: (req as any)?.user?.id || null,
+      timePeriod: end - start,
+    });
+  } catch (loggingError) {
+    logger.error("Failed to persist error log", loggingError);
+  }
+
+  if (res.headersSent) {
+    return;
+  }
 
   // 📤 Error Response
   res.status(error.statusCode || 500).json({

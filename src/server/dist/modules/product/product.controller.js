@@ -126,38 +126,54 @@ class ProductController {
             console.log("req.body:", req.body, "req.files:", req.files);
             // Parse variants from req.body
             let parsedVariants = [];
-            for (const key in req.body) {
-                if (key.startsWith("variants[")) {
-                    const match = key.match(/^variants\[(\d+)\]\[(\w+)\]$/);
-                    if (match) {
-                        const index = parseInt(match[1]);
-                        const field = match[2];
-                        if (!parsedVariants[index]) {
-                            parsedVariants[index] = {};
-                        }
-                        parsedVariants[index][field] = req.body[key];
-                    }
+            if (req.body.variants) {
+                try {
+                    parsedVariants =
+                        typeof req.body.variants === "string"
+                            ? JSON.parse(req.body.variants)
+                            : req.body.variants;
+                }
+                catch (_b) {
+                    throw new AppError_1.default(400, "Invalid variants payload");
                 }
             }
-            parsedVariants = parsedVariants.filter(Boolean);
+            if (!Array.isArray(parsedVariants) || parsedVariants.length === 0) {
+                for (const key in req.body) {
+                    if (key.startsWith("variants[")) {
+                        const match = key.match(/^variants\[(\d+)\]\[(\w+)\]$/);
+                        if (match) {
+                            const index = parseInt(match[1], 10);
+                            const field = match[2];
+                            if (!parsedVariants[index]) {
+                                parsedVariants[index] = {};
+                            }
+                            parsedVariants[index][field] = req.body[key];
+                        }
+                    }
+                }
+                parsedVariants = parsedVariants.filter(Boolean);
+            }
             // Process files for each variant
             const files = req.files || [];
             const processedVariants = parsedVariants.length
                 ? yield Promise.all(parsedVariants.map((variant, index) => __awaiter(this, void 0, void 0, function* () {
+                    var _a;
                     // Try to get files from imageIndexes or variants[${index}][images][${fileIndex}]
                     let variantFiles = [];
                     let imageIndexes = [];
                     try {
                         imageIndexes = variant.imageIndexes
-                            ? JSON.parse(variant.imageIndexes)
+                            ? typeof variant.imageIndexes === "string"
+                                ? JSON.parse(variant.imageIndexes)
+                                : variant.imageIndexes
                             : [];
                         if (Array.isArray(imageIndexes)) {
                             variantFiles = imageIndexes
-                                .map((idx) => files.find((f) => f.fieldname === `images` && files.indexOf(f) === idx))
+                                .map((idx) => files[idx])
                                 .filter(Boolean);
                         }
                     }
-                    catch (_a) {
+                    catch (_b) {
                         // Fallback to old format
                         variantFiles = files.filter((f) => f.fieldname.startsWith(`variants[${index}][images][`));
                     }
@@ -175,7 +191,7 @@ class ProductController {
                         try {
                             bodyImages = JSON.parse(bodyImages);
                         }
-                        catch (_b) {
+                        catch (_c) {
                             throw new AppError_1.default(400, `Invalid images format at variant index ${index}`);
                         }
                     }
@@ -189,12 +205,15 @@ class ProductController {
                         ...bodyImages.filter((img) => img),
                     ];
                     // Validate other fields
+                    const normalizedPrice = Number(variant.price);
+                    const normalizedStock = Number(variant.stock);
+                    const normalizedLowStockThreshold = Number((_a = variant.lowStockThreshold) !== null && _a !== void 0 ? _a : 10);
                     if (!variant.sku ||
-                        typeof variant.price !== "number" ||
-                        typeof variant.stock !== "number") {
+                        Number.isNaN(normalizedPrice) ||
+                        Number.isNaN(normalizedStock)) {
                         throw new AppError_1.default(400, `Variant at index ${index} must have sku, price, and stock`);
                     }
-                    if (variant.stock < 0) {
+                    if (normalizedStock < 0) {
                         throw new AppError_1.default(400, `Variant at index ${index} must have a valid non-negative stock number`);
                     }
                     // Validate attributes
@@ -221,7 +240,9 @@ class ProductController {
                     if (new Set(attributeIds).size !== attributeIds.length) {
                         throw new AppError_1.default(400, `Duplicate attributes in variant at index ${index}`);
                     }
-                    return Object.assign(Object.assign({}, variant), { images: imageUrls, attributes: parsedAttributes });
+                    return Object.assign(Object.assign({}, variant), { price: normalizedPrice, stock: normalizedStock, lowStockThreshold: Number.isNaN(normalizedLowStockThreshold)
+                            ? 10
+                            : normalizedLowStockThreshold, images: imageUrls, attributes: parsedAttributes });
                 })))
                 : undefined;
             if (processedVariants) {

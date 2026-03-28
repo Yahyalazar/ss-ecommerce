@@ -251,7 +251,7 @@ const VariantForm: React.FC<VariantFormProps> = ({
                   {attr.isRequired && <span className="text-red-500">*</span>}
                 </label>
                 <Controller
-                  name={`variants.${index}.attributes[${attrIndex}].valueId`}
+                  name={`variants.${index}.attributes.${attrIndex}.valueId`}
                   control={control}
                   rules={
                     attr.isRequired
@@ -264,11 +264,11 @@ const VariantForm: React.FC<VariantFormProps> = ({
                         label: v.value,
                         value: v.id,
                       }))}
-                      value={field.value}
+                      value={typeof field.value === "string" ? field.value : null}
                       onChange={(value) => {
                         field.onChange(value);
                         form.setValue(
-                          `variants.${index}.attributes[${attrIndex}].attributeId`,
+                          `variants.${index}.attributes.${attrIndex}.attributeId`,
                           attr.id
                         );
                       }}

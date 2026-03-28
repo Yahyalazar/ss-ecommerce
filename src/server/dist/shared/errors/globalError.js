@@ -37,9 +37,24 @@ const errorHandlers = {
     PrismaClientValidationError: () => new AppError_1.default(400, "Invalid input. Please check your request data."),
     PrismaClientInitializationError: () => new AppError_1.default(500, "Database initialization error. Please try again later."),
     PrismaClientRustPanicError: () => new AppError_1.default(500, "Unexpected internal server error. Please try again later."),
+    MulterError: (err) => {
+        switch (err.code) {
+            case "LIMIT_FILE_SIZE":
+                return new AppError_1.default(400, "Each uploaded file must be 10MB or smaller.");
+            case "LIMIT_FILE_COUNT":
+                return new AppError_1.default(400, "Too many files uploaded.");
+            case "LIMIT_UNEXPECTED_FILE":
+                return new AppError_1.default(400, "Unexpected upload field received.");
+            default:
+                return new AppError_1.default(400, err.message || "Invalid file upload.");
+        }
+    },
 };
-const globalError = (err, req, res, _next) => __awaiter(void 0, void 0, void 0, function* () {
+const globalError = (err, req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     var _a, _b;
+    if (res.headersSent) {
+        return next(err);
+    }
     let error = err instanceof AppError_1.default ? err : new AppError_1.default(500, err.message);
     const isDev = process.env.NODE_ENV === "development";
     const isProd = process.env.NODE_ENV === "production";
@@ -63,14 +78,22 @@ const globalError = (err, req, res, _next) => __awaiter(void 0, void 0, void 0, 
     const start = Date.now();
     const end = Date.now();
     // 🛠️ Logs Service Integration
-    yield logsService.error(`Error: ${error.message}`, {
-        statusCode: error.statusCode,
-        stack: err.stack,
-        method: req.method,
-        url: req.originalUrl,
-        userId: ((_b = req === null || req === void 0 ? void 0 : req.user) === null || _b === void 0 ? void 0 : _b.id) || null,
-        timePeriod: end - start,
-    });
+    try {
+        yield logsService.error(`Error: ${error.message}`, {
+            statusCode: error.statusCode,
+            stack: err.stack,
+            method: req.method,
+            url: req.originalUrl,
+            userId: ((_b = req === null || req === void 0 ? void 0 : req.user) === null || _b === void 0 ? void 0 : _b.id) || null,
+            timePeriod: end - start,
+        });
+    }
+    catch (loggingError) {
+        logger_1.default.error("Failed to persist error log", loggingError);
+    }
+    if (res.headersSent) {
+        return;
+    }
     // 📤 Error Response
     res.status(error.statusCode || 500).json(Object.assign(Object.assign({ status: error.statusCode >= 400 && error.statusCode < 500 ? "fail" : "error", message: error.message }, (error.details && { errors: error.details })), (isDev && {
         stack: error.stack,

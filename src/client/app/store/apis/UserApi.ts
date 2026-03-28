@@ -1,6 +1,12 @@
 import { User } from "@/app/types/authTypes";
 import { apiSlice } from "../slices/ApiSlice";
 
+interface GetMeResponse {
+  success: boolean;
+  message: string;
+  user: User;
+}
+
 export const userApi = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
     getAllUsers: builder.query({
@@ -30,7 +36,7 @@ export const userApi = apiSlice.injectEndpoints({
       }),
       invalidatesTags: ["User"],
     }),
-    getMe: builder.query<User, void>({
+    getMe: builder.query<GetMeResponse, void>({
       query: () => ({
         url: "/users/me",
         method: "GET",

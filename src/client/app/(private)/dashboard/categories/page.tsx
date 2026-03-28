@@ -92,8 +92,8 @@ const CategoriesDashboard = () => {
     payload.append("name", formData.name || "");
     payload.append("description", formData.description || "");
 
-    if (data.images && Array.isArray(data.images)) {
-      data.images.forEach((file: any) => {
+    if (formData.images && Array.isArray(formData.images)) {
+      formData.images.forEach((file: any) => {
         if (file instanceof File) {
           payload.append("images", file);
         }
