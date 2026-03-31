@@ -27,6 +27,17 @@ export const uploadToCloudinary = async (files: any) => {
     );
 
     const results = await Promise.allSettled(uploadPromises);
+    const failedUploads = results.filter(
+      (result) => result.status === "rejected"
+    ) as PromiseRejectedResult[];
+
+    failedUploads.forEach((result, index) => {
+      console.error(
+        `Cloudinary upload failed for file ${index}:`,
+        result.reason
+      );
+    });
+
     const successfulUploads = results
       .filter((result) => result.status === "fulfilled")
       .map((result: any) => result.value);

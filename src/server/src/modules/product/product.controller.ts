@@ -227,6 +227,9 @@ export class ProductController {
               let imageUrls: string[] = [];
               if (variantFiles.length > 0) {
                 const uploadedImages = await uploadToCloudinary(variantFiles);
+                if (uploadedImages.length === 0) {
+                  throw new AppError(400, "Failed to upload images to Cloudinary");
+                }
                 imageUrls = uploadedImages
                   .map((img) => img.url)
                   .filter(Boolean);

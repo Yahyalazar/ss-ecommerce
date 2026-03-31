@@ -181,6 +181,9 @@ class ProductController {
                     let imageUrls = [];
                     if (variantFiles.length > 0) {
                         const uploadedImages = yield (0, uploadToCloudinary_1.uploadToCloudinary)(variantFiles);
+                        if (uploadedImages.length === 0) {
+                            throw new AppError_1.default(400, "Failed to upload images to Cloudinary");
+                        }
                         imageUrls = uploadedImages
                             .map((img) => img.url)
                             .filter(Boolean);

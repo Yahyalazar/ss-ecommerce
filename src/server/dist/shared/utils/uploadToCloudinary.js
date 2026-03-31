@@ -33,6 +33,10 @@ const uploadToCloudinary = (files) => __awaiter(void 0, void 0, void 0, function
                 .end(file.buffer);
         }));
         const results = yield Promise.allSettled(uploadPromises);
+        const failedUploads = results.filter((result) => result.status === "rejected");
+        failedUploads.forEach((result, index) => {
+            console.error(`Cloudinary upload failed for file ${index}:`, result.reason);
+        });
         const successfulUploads = results
             .filter((result) => result.status === "fulfilled")
             .map((result) => result.value);

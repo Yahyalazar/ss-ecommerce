@@ -175,6 +175,7 @@ export class AuthController {
         await this.authService.refreshToken(oldRefreshToken);
 
       res.cookie("refreshToken", newRefreshToken, cookieOptions);
+      res.cookie("accessToken", newAccessToken, cookieOptions);
 
       sendResponse(res, 200, {
         message: "Token refreshed successfully",

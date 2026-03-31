@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import UserMenu from "../molecules/UserMenu";
@@ -7,7 +7,6 @@ import {
   ShoppingCart,
   Menu,
   X,
-  CircleUserRound,
   Search,
   LogOut,
 } from "lucide-react";
@@ -33,8 +32,13 @@ const Navbar = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [hasMounted, setHasMounted] = useState(false);
   const menuRef = useRef(null);
   const mobileMenuRef = useRef(null);
+
+  useEffect(() => {
+    setHasMounted(true);
+  }, []);
 
   useEventListener("scroll", () => {
     setScrolled(window.scrollY > 20);
@@ -42,6 +46,14 @@ const Navbar = () => {
 
   useClickOutside(menuRef, () => setMenuOpen(false));
   useClickOutside(mobileMenuRef, () => setMobileMenuOpen(false));
+
+  const shouldShowAuthUi = hasMounted && !isLoading;
+  const shouldShowUserMenu = shouldShowAuthUi && isAuthenticated;
+  const shouldShowSignInLink =
+    shouldShowAuthUi &&
+    !isAuthenticated &&
+    pathname !== "/sign-up" &&
+    pathname !== "/sign-in";
 
   const handleSignOut = async () => {
     try {
@@ -103,7 +115,7 @@ const Navbar = () => {
               </Link>
 
               {/* User Menu */}
-              {!isLoading && isAuthenticated ? (
+              {shouldShowUserMenu ? (
                 <div className="relative" ref={menuRef}>
                   <button
                     onClick={() => setMenuOpen(!menuOpen)}
@@ -144,17 +156,14 @@ const Navbar = () => {
                     />
                   )}
                 </div>
-              ) : (
-                pathname !== "/sign-up" &&
-                pathname !== "/sign-in" && (
-                  <Link
-                    href="/sign-in"
-                    className="hidden sm:block px-4 py-2 text-sm font-medium text-gray-800 hover:text-indigo-600 transition-colors"
-                  >
-                    Sign in
-                  </Link>
-                )
-              )}
+              ) : shouldShowSignInLink ? (
+                <Link
+                  href="/sign-in"
+                  className="hidden sm:block px-4 py-2 text-sm font-medium text-gray-800 hover:text-indigo-600 transition-colors"
+                >
+                  Sign in
+                </Link>
+              ) : null}
 
               {/* Mobile Menu Button */}
               <button
@@ -181,7 +190,7 @@ const Navbar = () => {
               className="md:hidden absolute top-full left-0 right-0 bg-white shadow-lg border-t border-gray-200"
             >
               <div className="px-4 py-2 space-y-2">
-                {!isAuthenticated && (
+                {shouldShowAuthUi && !isAuthenticated && (
                   <>
                     <Link
                       href="/sign-in"

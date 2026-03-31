@@ -163,6 +163,7 @@ class AuthController {
             }
             const { newAccessToken, newRefreshToken, user } = yield this.authService.refreshToken(oldRefreshToken);
             res.cookie("refreshToken", newRefreshToken, constants_1.cookieOptions);
+            res.cookie("accessToken", newAccessToken, constants_1.cookieOptions);
             (0, sendResponse_1.default)(res, 200, {
                 message: "Token refreshed successfully",
                 data: { accessToken: newAccessToken, user },
