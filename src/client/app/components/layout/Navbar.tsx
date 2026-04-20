@@ -20,6 +20,7 @@ import { useAppDispatch } from "@/app/store/hooks";
 import { useSignOutMutation } from "@/app/store/apis/AuthApi";
 import { logout } from "@/app/store/slices/AuthSlice";
 import { generateUserAvatar } from "@/app/utils/placeholderImage";
+import talaShopLogo from "@/app/assets/images/talashop-logo.jpg";
 
 const Navbar = () => {
   const pathname = usePathname();
@@ -79,9 +80,21 @@ const Navbar = () => {
             {/* Logo */}
             <Link
               href="/"
-              className="font-medium text-lg sm:text-xl lg:text-xl text-gray-900 flex-shrink-0"
+              className="flex flex-shrink-0 items-center gap-3 text-gray-900"
             >
-              Ecommerce
+              <span className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-full bg-white sm:h-14 sm:w-14">
+                <Image
+                  src={talaShopLogo}
+                  alt="TalaShop logo"
+                  width={56}
+                  height={56}
+                  className="h-full w-full object-contain"
+                  priority
+                />
+              </span>
+              <span className="font-medium text-lg sm:text-xl lg:text-xl">
+                TalaShop
+              </span>
             </Link>
 
             {/* Desktop Search Bar */}
