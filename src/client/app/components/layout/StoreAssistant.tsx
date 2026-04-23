@@ -20,6 +20,7 @@ import {
   AssistantCatalogCategory,
   AssistantCatalogProduct,
   AssistantRecommendation,
+  buildAssistantActionReply,
   buildAssistantReply,
   getWelcomeReply,
 } from "./storeAssistantEngine";
@@ -101,6 +102,75 @@ const getActionFeedback = (action: AssistantAction) => {
   }
 
   return `Opening ${action.label.toLowerCase()} now.`;
+};
+
+const resolveAssistantAction = (action: AssistantAction): AssistantAction => {
+  if (action.intent) {
+    return action;
+  }
+
+  const label = action.label.trim().toLowerCase();
+  const prompt = action.prompt?.trim().toLowerCase();
+  const userMessage = action.userMessage?.trim().toLowerCase();
+
+  if (
+    label === "trending now" ||
+    label === "try trending products" ||
+    userMessage === "trending now" ||
+    userMessage === "try trending products" ||
+    prompt === "show me trending products"
+  ) {
+    return {
+      ...action,
+      intent: "trending",
+      userMessage: action.userMessage || action.label,
+    };
+  }
+
+  if (
+    label === "new arrivals" ||
+    userMessage === "new arrivals" ||
+    prompt === "show me new arrivals"
+  ) {
+    return {
+      ...action,
+      intent: "new-arrivals",
+      userMessage: action.userMessage || action.label,
+    };
+  }
+
+  if (
+    label === "track my order" ||
+    userMessage === "track my order" ||
+    prompt === "how do i track my order?"
+  ) {
+    return {
+      ...action,
+      intent: "track-order",
+      userMessage: action.userMessage || action.label,
+    };
+  }
+
+  if (
+    label === "talk to support" ||
+    label === "sign in for support" ||
+    label === "support after sign in" ||
+    label === "contact support" ||
+    userMessage === "talk to support" ||
+    userMessage === "sign in for support" ||
+    userMessage === "support after sign in" ||
+    userMessage === "contact support" ||
+    prompt === "i need help from support" ||
+    prompt === "how do i sign in for support?"
+  ) {
+    return {
+      ...action,
+      intent: "support",
+      userMessage: action.userMessage || action.label,
+    };
+  }
+
+  return action;
 };
 
 const StoreAssistant = () => {
@@ -227,21 +297,82 @@ const StoreAssistant = () => {
     ]);
   };
 
+  const handleIntentAction = async (
+    action: AssistantAction & { intent: NonNullable<AssistantAction["intent"]> }
+  ) => {
+    if (isTyping) {
+      return;
+    }
+
+    appendUserMessage(action.userMessage || action.label);
+    setDraft("");
+    setIsTyping(true);
+
+    try {
+      const needsCatalog = action.intent === "trending" || action.intent === "new-arrivals";
+      const catalog = needsCatalog
+        ? await ensureCatalogLoaded()
+        : { products: [], categories: [] };
+
+      await new Promise((resolve) => window.setTimeout(resolve, 350));
+
+      const reply = buildAssistantActionReply({
+        intent: action.intent,
+        products: catalog.products,
+        categories: catalog.categories,
+        isAuthenticated,
+      });
+
+      setMessages((currentMessages) => [
+        ...currentMessages,
+        createAssistantMessage(reply),
+      ]);
+    } catch (error) {
+      console.error("Assistant intent reply failed:", error);
+      setMessages((currentMessages) => [
+        ...currentMessages,
+        createAssistantMessage({
+          content:
+            "I hit a temporary problem while handling that choice, but you can still browse the shop or try again.",
+          actions: [
+            { label: "Browse shop", href: "/shop" },
+            {
+              label: isAuthenticated ? "Open support" : "Sign in",
+              href: isAuthenticated ? "/support" : "/sign-in",
+            },
+          ],
+        }),
+      ]);
+    } finally {
+      setIsTyping(false);
+    }
+  };
+
   const handleAction = async (action: AssistantAction) => {
-    if (action.prompt) {
-      await handleSubmitPrompt({
-        prompt: action.prompt,
-        userMessage: action.userMessage || action.label,
+    const resolvedAction = resolveAssistantAction(action);
+
+    if (resolvedAction.intent) {
+      await handleIntentAction({
+        ...resolvedAction,
+        intent: resolvedAction.intent,
       });
       return;
     }
 
-    if (action.href) {
+    if (resolvedAction.prompt) {
+      await handleSubmitPrompt({
+        prompt: resolvedAction.prompt,
+        userMessage: resolvedAction.userMessage || resolvedAction.label,
+      });
+      return;
+    }
+
+    if (resolvedAction.href) {
       if (isTyping) {
         return;
       }
 
-      appendUserMessage(action.userMessage || action.label);
+      appendUserMessage(resolvedAction.userMessage || resolvedAction.label);
       setDraft("");
       setIsTyping(true);
 
@@ -250,7 +381,7 @@ const StoreAssistant = () => {
         setMessages((currentMessages) => [
           ...currentMessages,
           createAssistantMessage({
-            content: getActionFeedback(action),
+            content: getActionFeedback(resolvedAction),
           }),
         ]);
       } finally {
@@ -259,11 +390,11 @@ const StoreAssistant = () => {
 
       await new Promise((resolve) => window.setTimeout(resolve, 250));
 
-      if (shouldHideAssistantOnRoute(action.href)) {
+      if (shouldHideAssistantOnRoute(resolvedAction.href)) {
         setIsOpen(false);
       }
 
-      router.push(action.href);
+      router.push(resolvedAction.href);
     }
   };
 

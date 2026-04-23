@@ -28,6 +28,12 @@ export interface AssistantAction {
   href?: string;
   userMessage?: string;
   feedback?: string;
+  intent?:
+    | "trending"
+    | "new-arrivals"
+    | "track-order"
+    | "support"
+    | "browse-shop";
 }
 
 export interface AssistantRecommendation {
@@ -169,24 +175,22 @@ const getStarterActions = (isAuthenticated: boolean): AssistantAction[] => [
   {
     label: "Trending now",
     userMessage: "Trending now",
-    prompt: "Show me trending products",
+    intent: "trending",
   },
   {
     label: "New arrivals",
     userMessage: "New arrivals",
-    prompt: "Show me new arrivals",
+    intent: "new-arrivals",
   },
   {
     label: "Track my order",
     userMessage: "Track my order",
-    prompt: "How do I track my order?",
+    intent: "track-order",
   },
   {
     label: isAuthenticated ? "Talk to support" : "Sign in for support",
     userMessage: isAuthenticated ? "Talk to support" : "Sign in for support",
-    prompt: isAuthenticated
-      ? "I need help from support"
-      : "How do I sign in for support?",
+    intent: "support",
   },
 ];
 
@@ -290,9 +294,7 @@ const getOrdersReply = (isAuthenticated: boolean): AssistantReply => ({
       userMessage: isAuthenticated
         ? "Talk to support"
         : "Support after sign in",
-      prompt: isAuthenticated
-        ? "I need help from support"
-        : "How do I sign in for support?",
+      intent: "support",
     },
   ],
 });
@@ -314,9 +316,7 @@ const getReturnsReply = (isAuthenticated: boolean): AssistantReply => ({
       userMessage: isAuthenticated
         ? "Contact support"
         : "Support after sign in",
-      prompt: isAuthenticated
-        ? "I need help from support"
-        : "How do I sign in for support?",
+      intent: "support",
     },
   ],
 });
@@ -420,7 +420,7 @@ export const buildAssistantReply = ({
     filteredProducts = filteredProducts.filter((product) =>
       matchesPriceRange(product, priceRange.min, priceRange.max)
     );
-    const labelParts = [];
+    const labelParts: string[] = [];
 
     if (typeof priceRange.min === "number") {
       labelParts.push(`from $${priceRange.min}`);
@@ -470,9 +470,7 @@ export const buildAssistantReply = ({
           userMessage: isAuthenticated
             ? "Talk to support"
             : "Sign in for support",
-          prompt: isAuthenticated
-            ? "I need help from support"
-            : "How do I sign in for support?",
+          intent: "support",
         },
       ],
     };
@@ -491,11 +489,138 @@ export const buildAssistantReply = ({
         {
           label: "Try trending products",
           userMessage: "Try trending products",
-          prompt: "Show me trending products",
+          intent: "trending",
         },
       ],
     };
   }
 
   return getFallbackReply(isAuthenticated);
+};
+
+export const buildAssistantActionReply = ({
+  intent,
+  products,
+  categories,
+  isAuthenticated,
+}: AssistantContext & {
+  intent: NonNullable<AssistantAction["intent"]>;
+}): AssistantReply => {
+  switch (intent) {
+    case "support":
+      return getHumanSupportReply(isAuthenticated);
+    case "track-order":
+      return getOrdersReply(isAuthenticated);
+    case "browse-shop":
+      return {
+        content:
+          "You can browse the full catalog from the shop. If you want, I can also narrow it down by category, budget, or popularity.",
+        actions: [
+          {
+            label: "Open shop",
+            href: "/shop",
+            userMessage: "Open shop",
+            feedback: "Opening the shop so you can explore the full catalog.",
+          },
+          {
+            label: "Trending now",
+            userMessage: "Trending now",
+            intent: "trending",
+          },
+        ],
+      };
+    case "trending": {
+      const trendingProducts = products
+        .filter((product) => product.isTrending)
+        .sort(byPriority);
+
+      if (trendingProducts.length > 0) {
+        return {
+          content: "Here are a few trending products customers are checking out right now.",
+          products: mapRecommendations(trendingProducts),
+          actions: [
+            {
+              label: "See more results",
+              href: "/shop?isTrending=true",
+              userMessage: "See more results",
+              feedback: "Opening more trending products for you.",
+            },
+            {
+              label: isAuthenticated ? "Talk to support" : "Sign in for support",
+              userMessage: isAuthenticated
+                ? "Talk to support"
+                : "Sign in for support",
+              intent: "support",
+            },
+          ],
+        };
+      }
+
+      return {
+        content:
+          "I could not find products currently marked as trending, but I can still help you browse the latest arrivals or open the full shop.",
+        actions: [
+          {
+            label: "New arrivals",
+            userMessage: "New arrivals",
+            intent: "new-arrivals",
+          },
+          {
+            label: "Browse shop",
+            href: "/shop",
+            userMessage: "Browse shop",
+            feedback: "Opening the shop so you can browse everything currently available.",
+          },
+        ],
+      };
+    }
+    case "new-arrivals": {
+      const newProducts = products.filter((product) => product.isNew).sort(byPriority);
+
+      if (newProducts.length > 0) {
+        return {
+          content: "Here are some of the newest arrivals in the catalog.",
+          products: mapRecommendations(newProducts),
+          actions: [
+            {
+              label: "See more results",
+              href: "/shop?isNew=true",
+              userMessage: "See more results",
+              feedback: "Opening more new arrivals for you.",
+            },
+            {
+              label: "Trending now",
+              userMessage: "Trending now",
+              intent: "trending",
+            },
+          ],
+        };
+      }
+
+      return {
+        content:
+          "I do not see products currently marked as new arrivals, but I can show trending items or open the shop so you can browse everything.",
+        actions: [
+          {
+            label: "Trending now",
+            userMessage: "Trending now",
+            intent: "trending",
+          },
+          {
+            label: "Browse shop",
+            href: "/shop",
+            userMessage: "Browse shop",
+            feedback: "Opening the shop so you can browse the full catalog.",
+          },
+        ],
+      };
+    }
+  }
+
+  return buildAssistantReply({
+    message: categories[0]?.name || "shop",
+    products,
+    categories,
+    isAuthenticated,
+  });
 };
