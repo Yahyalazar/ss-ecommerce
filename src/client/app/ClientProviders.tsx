@@ -6,6 +6,7 @@ import client from "./lib/apolloClient";
 import Toast from "./components/feedback/Toast";
 import AuthProvider from "./components/HOC/AuthProvider";
 import TopLoadingBar from "./components/feedback/TopLoadingBar";
+import StoreAssistant from "./components/layout/StoreAssistant";
 
 export default function ClientProviders({
   children,
@@ -17,6 +18,7 @@ export default function ClientProviders({
       <TopLoadingBar />
       <Provider store={store}>
         <AuthProvider>{children}</AuthProvider>
+        <StoreAssistant />
         {process.env.NODE_ENV !== "test" && <Toast />}
       </Provider>
     </ApolloProvider>
