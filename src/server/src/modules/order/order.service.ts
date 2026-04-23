@@ -6,19 +6,11 @@ export class OrderService {
   constructor(private orderRepository: OrderRepository) {}
 
   async getAllOrders() {
-    const orders = await this.orderRepository.findAllOrders();
-    if (!orders || orders.length === 0) {
-      throw new AppError(404, "No orders found");
-    }
-    return orders;
+    return this.orderRepository.findAllOrders();
   }
 
   async getUserOrders(userId: string) {
-    const orders = await this.orderRepository.findOrdersByUserId(userId);
-    if (!orders || orders.length === 0) {
-      throw new AppError(404, "No orders found for this user");
-    }
-    return orders;
+    return this.orderRepository.findOrdersByUserId(userId);
   }
 
   async getOrderDetails(orderId: string, userId: string) {

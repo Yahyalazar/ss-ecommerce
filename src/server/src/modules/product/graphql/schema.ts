@@ -80,6 +80,11 @@ const typeDefs = gql`
     totalCount: Int!
   }
 
+  type ShopFilterOptions {
+    colors: [AttributeValue!]!
+    genders: [AttributeValue!]!
+  }
+
   input ProductFilters {
     search: String
     isNew: Boolean
@@ -89,6 +94,8 @@ const typeDefs = gql`
     minPrice: Float
     maxPrice: Float
     categoryId: String
+    color: String
+    gender: String
     flags: [String!]
   }
 
@@ -100,6 +107,7 @@ const typeDefs = gql`
     trendingProducts(first: Int, skip: Int): ProductConnection!
     bestSellerProducts(first: Int, skip: Int): ProductConnection!
     categories: [Category!]!
+    shopFilterOptions: ShopFilterOptions!
   }
 `;
 

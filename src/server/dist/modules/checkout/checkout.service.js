@@ -23,7 +23,9 @@ function validImage(url) {
     return url.length <= 2048 ? url : PLACEHOLDER_IMAGE;
 }
 class CheckoutService {
-    constructor() { }
+    constructor(webhookService) {
+        this.webhookService = webhookService;
+    }
     createStripeSession(cart, userId) {
         return __awaiter(this, void 0, void 0, function* () {
             // Validate stock for all cart items
@@ -59,11 +61,16 @@ class CheckoutService {
                     allowed_countries: ["US", "CA", "MX", "EG"],
                 },
                 mode: "payment",
-                success_url: `${clientUrl}/orders`,
+                success_url: `${clientUrl}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
                 cancel_url: `${clientUrl}/cancel`,
                 metadata: { userId, cartId: cart.id },
             });
             return session;
+        });
+    }
+    confirmStripeSession(sessionId, userId) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return this.webhookService.confirmCheckoutCompletion(sessionId, userId);
         });
     }
 }

@@ -65,18 +65,26 @@ class WebhookService {
             return cart.cartItems.reduce((sum, item) => sum + item.variant.price * item.quantity, 0);
         });
     }
-    handleCheckoutCompletion(session) {
+    retrieveCheckoutSession(sessionId) {
         return __awaiter(this, void 0, void 0, function* () {
-            var _a, _b, _c;
-            const fullSession = yield stripe_1.default.checkout.sessions.retrieve(session.id, {
+            return stripe_1.default.checkout.sessions.retrieve(sessionId, {
                 expand: ["customer_details", "line_items"],
             });
+        });
+    }
+    finalizeCheckoutCompletion(fullSession) {
+        return __awaiter(this, void 0, void 0, function* () {
+            var _a, _b, _c;
+            if (fullSession.status !== "complete" ||
+                fullSession.payment_status !== "paid") {
+                throw new AppError_1.default(400, "Checkout has not completed successfully yet");
+            }
             const existingOrder = yield prisma.order.findFirst({
                 where: { id: fullSession.id },
             });
             if (existingOrder) {
                 this.logsService.info("Webhook - Duplicate event ignored", {
-                    sessionId: session.id,
+                    sessionId: fullSession.id,
                 });
                 return {
                     order: existingOrder,
@@ -210,6 +218,26 @@ class WebhookService {
                 amount,
             });
             return result;
+        });
+    }
+    handleCheckoutCompletion(session) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const fullSession = yield this.retrieveCheckoutSession(session.id);
+            return this.finalizeCheckoutCompletion(fullSession);
+        });
+    }
+    confirmCheckoutCompletion(sessionId, userId) {
+        return __awaiter(this, void 0, void 0, function* () {
+            var _a;
+            const fullSession = yield this.retrieveCheckoutSession(sessionId);
+            const sessionUserId = (_a = fullSession === null || fullSession === void 0 ? void 0 : fullSession.metadata) === null || _a === void 0 ? void 0 : _a.userId;
+            if (!sessionUserId) {
+                throw new AppError_1.default(400, "Missing userId in session metadata");
+            }
+            if (sessionUserId !== userId) {
+                throw new AppError_1.default(403, "You are not authorized to confirm this checkout session");
+            }
+            return this.finalizeCheckoutCompletion(fullSession);
         });
     }
 }

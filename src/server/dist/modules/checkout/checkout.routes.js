@@ -46,5 +46,6 @@ const checkoutController = (0, checkout_factory_1.makeCheckoutController)();
  *       401:
  *         description: Unauthorized. Token is invalid or missing.
  */
+router.post("/confirm", protect_1.default, checkoutController.confirmCheckout);
 router.post("/", protect_1.default, checkoutController.initiateCheckout);
 exports.default = router;

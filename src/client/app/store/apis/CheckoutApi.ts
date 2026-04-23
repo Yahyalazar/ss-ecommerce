@@ -9,7 +9,17 @@ export const checkoutApi = apiSlice.injectEndpoints({
         credentials: "include",
       }),
     }),
+    confirmCheckout: builder.mutation({
+      query: ({ sessionId }) => ({
+        url: "/checkout/confirm",
+        method: "POST",
+        body: { sessionId },
+        credentials: "include",
+      }),
+      invalidatesTags: ["Order", "Cart"],
+    }),
   }),
 });
 
-export const { useInitiateCheckoutMutation } = checkoutApi;
+export const { useInitiateCheckoutMutation, useConfirmCheckoutMutation } =
+  checkoutApi;

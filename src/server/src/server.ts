@@ -3,7 +3,7 @@ import path from "path";
 import dotenv from "dotenv";
 
 // Load environment variables FIRST
-dotenv.config();
+dotenv.config({ path: path.resolve(__dirname, "..", ".env") });
 
 // Dynamically set module alias based on NODE_ENV
 const isProduction = process.env.NODE_ENV === "production";

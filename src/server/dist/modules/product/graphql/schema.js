@@ -85,6 +85,11 @@ const typeDefs = (0, graphql_tag_1.default) `
     totalCount: Int!
   }
 
+  type ShopFilterOptions {
+    colors: [AttributeValue!]!
+    genders: [AttributeValue!]!
+  }
+
   input ProductFilters {
     search: String
     isNew: Boolean
@@ -94,6 +99,8 @@ const typeDefs = (0, graphql_tag_1.default) `
     minPrice: Float
     maxPrice: Float
     categoryId: String
+    color: String
+    gender: String
     flags: [String!]
   }
 
@@ -105,6 +112,7 @@ const typeDefs = (0, graphql_tag_1.default) `
     trendingProducts(first: Int, skip: Int): ProductConnection!
     bestSellerProducts(first: Int, skip: Int): ProductConnection!
     categories: [Category!]!
+    shopFilterOptions: ShopFilterOptions!
   }
 `;
 exports.productSchema = (0, schema_1.makeExecutableSchema)({

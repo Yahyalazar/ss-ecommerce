@@ -64,6 +64,23 @@ export const GET_PRODUCTS = gql`
   }
 `;
 
+export const GET_SHOP_FILTER_OPTIONS = gql`
+  query GetShopFilterOptions {
+    shopFilterOptions {
+      colors {
+        id
+        value
+        slug
+      }
+      genders {
+        id
+        value
+        slug
+      }
+    }
+  }
+`;
+
 export const GET_SINGLE_PRODUCT = gql`
   query GetSingleProduct($slug: String!) {
     product(slug: $slug) {

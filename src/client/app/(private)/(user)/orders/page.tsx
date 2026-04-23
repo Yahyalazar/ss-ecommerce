@@ -262,7 +262,7 @@ const UserOrders = () => {
             <Package size={48} className="mx-auto text-gray-400 mb-4" />
             <p className="text-lg text-gray-600">You have no orders yet</p>
             <Link
-              href="/products"
+              href="/shop"
               className="mt-4 inline-block text-indigo-500 hover:text-indigo-600 font-medium transition-colors duration-200"
             >
               Start Shopping

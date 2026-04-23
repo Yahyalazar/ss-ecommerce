@@ -47,6 +47,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.createApp = void 0;
 const express_1 = __importDefault(require("express"));
+const path_1 = __importDefault(require("path"));
 const dotenv_1 = __importDefault(require("dotenv"));
 require("./infra/cloudinary/config");
 const body_parser_1 = __importDefault(require("body-parser"));
@@ -75,7 +76,7 @@ const http_1 = require("http");
 const socket_1 = require("@/infra/socket/socket");
 const database_config_1 = require("./infra/database/database.config");
 const swagger_1 = require("./docs/swagger");
-dotenv_1.default.config();
+dotenv_1.default.config({ path: path_1.default.resolve(__dirname, "..", ".env") });
 const createApp = () => __awaiter(void 0, void 0, void 0, function* () {
     const app = (0, express_1.default)();
     yield (0, database_config_1.connectDB)().catch((err) => {

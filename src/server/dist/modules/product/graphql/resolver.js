@@ -17,7 +17,12 @@ const AppError_1 = __importDefault(require("@/shared/errors/AppError"));
 exports.productResolvers = {
     Query: {
         products: (_1, _a, context_1) => __awaiter(void 0, [_1, _a, context_1], void 0, function* (_, { first = 10, skip = 0, filters = {}, }, context) {
+            var _b, _c;
             const where = {};
+            const variantFilters = {};
+            const attributeConditions = [];
+            const normalizedColor = (_b = filters.color) === null || _b === void 0 ? void 0 : _b.trim().toLowerCase();
+            const normalizedGender = (_c = filters.gender) === null || _c === void 0 ? void 0 : _c.trim().toLowerCase();
             // Search filter
             if (filters.search) {
                 where.OR = [
@@ -47,10 +52,45 @@ exports.productResolvers = {
             }
             // Price filter (based on variants)
             if (filters.minPrice !== undefined || filters.maxPrice !== undefined) {
-                where.variants = {
-                    some: {
-                        price: Object.assign(Object.assign({}, (filters.minPrice !== undefined && { gte: filters.minPrice })), (filters.maxPrice !== undefined && { lte: filters.maxPrice })),
+                variantFilters.price = Object.assign(Object.assign({}, (filters.minPrice !== undefined && { gte: filters.minPrice })), (filters.maxPrice !== undefined && { lte: filters.maxPrice }));
+            }
+            if (normalizedColor) {
+                attributeConditions.push({
+                    attributes: {
+                        some: {
+                            attribute: {
+                                slug: "color",
+                            },
+                            value: {
+                                slug: normalizedColor,
+                            },
+                        },
                     },
+                });
+            }
+            if (normalizedGender) {
+                attributeConditions.push({
+                    attributes: {
+                        some: {
+                            attribute: {
+                                slug: "gender",
+                            },
+                            value: {
+                                slug: normalizedGender,
+                            },
+                        },
+                    },
+                });
+            }
+            if (attributeConditions.length === 1) {
+                Object.assign(variantFilters, attributeConditions[0]);
+            }
+            else if (attributeConditions.length > 1) {
+                variantFilters.AND = attributeConditions;
+            }
+            if (Object.keys(variantFilters).length > 0) {
+                where.variants = {
+                    some: variantFilters,
                 };
             }
             const totalCount = yield context.prisma.product.count({ where });
@@ -183,6 +223,47 @@ exports.productResolvers = {
                     },
                 },
             });
+        }),
+        shopFilterOptions: (_, __, context) => __awaiter(void 0, void 0, void 0, function* () {
+            const variantAttributes = yield context.prisma.productVariantAttribute.findMany({
+                where: {
+                    attribute: {
+                        slug: {
+                            in: ["color", "gender"],
+                        },
+                    },
+                },
+                include: {
+                    attribute: true,
+                    value: true,
+                },
+            });
+            const grouped = {
+                colors: [],
+                genders: [],
+            };
+            const seen = {
+                colors: new Set(),
+                genders: new Set(),
+            };
+            for (const item of variantAttributes) {
+                const targetKey = item.attribute.slug === "color"
+                    ? "colors"
+                    : item.attribute.slug === "gender"
+                        ? "genders"
+                        : null;
+                if (!targetKey || seen[targetKey].has(item.value.id))
+                    continue;
+                seen[targetKey].add(item.value.id);
+                grouped[targetKey].push({
+                    id: item.value.id,
+                    value: item.value.value,
+                    slug: item.value.slug,
+                });
+            }
+            grouped.colors.sort((a, b) => a.value.localeCompare(b.value));
+            grouped.genders.sort((a, b) => a.value.localeCompare(b.value));
+            return grouped;
         }),
     },
     Product: {

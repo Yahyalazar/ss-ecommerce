@@ -25,10 +25,19 @@ export class WebhookService {
     );
   }
 
-  async handleCheckoutCompletion(session: any) {
-    const fullSession = await stripe.checkout.sessions.retrieve(session.id, {
+  private async retrieveCheckoutSession(sessionId: string) {
+    return stripe.checkout.sessions.retrieve(sessionId, {
       expand: ["customer_details", "line_items"],
     });
+  }
+
+  private async finalizeCheckoutCompletion(fullSession: any) {
+    if (
+      fullSession.status !== "complete" ||
+      fullSession.payment_status !== "paid"
+    ) {
+      throw new AppError(400, "Checkout has not completed successfully yet");
+    }
 
     const existingOrder = await prisma.order.findFirst({
       where: { id: fullSession.id },
@@ -36,7 +45,7 @@ export class WebhookService {
 
     if (existingOrder) {
       this.logsService.info("Webhook - Duplicate event ignored", {
-        sessionId: session.id,
+        sessionId: fullSession.id,
       });
       return {
         order: existingOrder,
@@ -185,5 +194,28 @@ export class WebhookService {
     });
 
     return result;
+  }
+
+  async handleCheckoutCompletion(session: any) {
+    const fullSession = await this.retrieveCheckoutSession(session.id);
+    return this.finalizeCheckoutCompletion(fullSession);
+  }
+
+  async confirmCheckoutCompletion(sessionId: string, userId: string) {
+    const fullSession = await this.retrieveCheckoutSession(sessionId);
+    const sessionUserId = fullSession?.metadata?.userId;
+
+    if (!sessionUserId) {
+      throw new AppError(400, "Missing userId in session metadata");
+    }
+
+    if (sessionUserId !== userId) {
+      throw new AppError(
+        403,
+        "You are not authorized to confirm this checkout session"
+      );
+    }
+
+    return this.finalizeCheckoutCompletion(fullSession);
   }
 }

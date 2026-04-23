@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { X, SlidersHorizontal } from "lucide-react";
 import Dropdown from "@/app/components/molecules/Dropdown";
@@ -15,12 +15,22 @@ export interface FilterValues {
   isFeatured?: boolean;
   isTrending?: boolean;
   isBestSeller?: boolean;
+  color?: string;
+  gender?: string;
+}
+
+interface AttributeFilterOption {
+  id: string;
+  slug: string;
+  value: string;
 }
 
 interface ProductFiltersProps {
   initialFilters: FilterValues;
   onFilterChange: (filters: FilterValues) => void;
   categories: Array<{ id: string; name: string }>;
+  colors?: AttributeFilterOption[];
+  genders?: AttributeFilterOption[];
   isMobile?: boolean;
   onCloseMobile?: () => void;
 }
@@ -29,12 +39,18 @@ const ProductFilters: React.FC<ProductFiltersProps> = ({
   initialFilters,
   onFilterChange,
   categories,
+  colors = [],
+  genders = [],
   isMobile = false,
   onCloseMobile,
 }) => {
   const { control, watch, reset, handleSubmit } = useForm<FilterValues>({
     defaultValues: initialFilters,
   });
+
+  useEffect(() => {
+    reset(initialFilters);
+  }, [initialFilters, reset]);
 
   // Watch form values
   const formValues = watch();
@@ -66,6 +82,8 @@ const ProductFilters: React.FC<ProductFiltersProps> = ({
       isFeatured: undefined,
       isTrending: undefined,
       isBestSeller: undefined,
+      color: undefined,
+      gender: undefined,
     });
     onFilterChange({
       search: "",
@@ -76,6 +94,8 @@ const ProductFilters: React.FC<ProductFiltersProps> = ({
       isFeatured: undefined,
       isTrending: undefined,
       isBestSeller: undefined,
+      color: undefined,
+      gender: undefined,
     });
     if (isMobile && onCloseMobile) onCloseMobile();
   };
@@ -86,6 +106,22 @@ const ProductFilters: React.FC<ProductFiltersProps> = ({
     ...categories.map((category) => ({
       label: category.name,
       value: category.id,
+    })),
+  ];
+
+  const colorOptions = [
+    { label: "All Colors", value: "" },
+    ...colors.map((color) => ({
+      label: color.value,
+      value: color.slug,
+    })),
+  ];
+
+  const genderOptions = [
+    { label: "All Genders", value: "" },
+    ...genders.map((gender) => ({
+      label: gender.value,
+      value: gender.slug,
     })),
   ];
 
@@ -184,6 +220,44 @@ const ProductFilters: React.FC<ProductFiltersProps> = ({
                   value={field.value || ""}
                   onChange={(val) => field.onChange(val || undefined)}
                   className="w-full"
+                />
+              )}
+            />
+          </div>
+
+          {/* Color */}
+          <div className="space-y-3">
+            <label className="text-sm font-semibold text-gray-800">Color</label>
+            <Controller
+              name="color"
+              control={control}
+              render={({ field }) => (
+                <Dropdown
+                  options={colorOptions}
+                  value={field.value || ""}
+                  onChange={(val) => field.onChange(val || undefined)}
+                  className="w-full"
+                  disabled={colorOptions.length <= 1}
+                />
+              )}
+            />
+          </div>
+
+          {/* Gender */}
+          <div className="space-y-3">
+            <label className="text-sm font-semibold text-gray-800">
+              Gender
+            </label>
+            <Controller
+              name="gender"
+              control={control}
+              render={({ field }) => (
+                <Dropdown
+                  options={genderOptions}
+                  value={field.value || ""}
+                  onChange={(val) => field.onChange(val || undefined)}
+                  className="w-full"
+                  disabled={genderOptions.length <= 1}
                 />
               )}
             />

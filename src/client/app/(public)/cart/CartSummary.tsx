@@ -15,6 +15,32 @@ interface CartSummaryProps {
   cartId: string;
 }
 
+const stripePublishableKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
+const stripePromise = stripePublishableKey
+  ? loadStripe(stripePublishableKey)
+  : null;
+
+function getCheckoutErrorMessage(error: unknown): string {
+  if (typeof error !== "object" || error === null) {
+    return "Failed to initiate checkout";
+  }
+
+  const checkoutError = error as {
+    data?: { message?: string };
+    error?: string;
+  };
+
+  if (typeof checkoutError.data?.message === "string") {
+    return checkoutError.data.message;
+  }
+
+  if (typeof checkoutError.error === "string") {
+    return checkoutError.error;
+  }
+
+  return "Failed to initiate checkout";
+}
+
 const CartSummary: React.FC<CartSummaryProps> = ({
   subtotal,
   shippingRate = 0.01,
@@ -23,10 +49,6 @@ const CartSummary: React.FC<CartSummaryProps> = ({
 }) => {
   const { isAuthenticated } = useAuth();
   const { showToast } = useToast();
-
-  const stripePromise = loadStripe(
-    "pk_test_51R9gs72KGvEXtMtXXTm7UscmmHYsvk9j3ktaM8vxRb3evNJgG1dpD05YWACweIfcPtpCgOIs4HkpGrTCKE1dZD0p00sLC6iIBg"
-  );
 
   const [initiateCheckout, { isLoading }] = useInitiateCheckoutMutation();
 
@@ -38,8 +60,19 @@ const CartSummary: React.FC<CartSummaryProps> = ({
 
   const handleInitiateCheckout = async () => {
     try {
+      if (!stripePromise) {
+        showToast("Stripe publishable key is missing", "error");
+        return;
+      }
+
       const res = await initiateCheckout(undefined).unwrap();
       const stripe = await stripePromise;
+
+      if (!stripe) {
+        showToast("Stripe failed to initialize", "error");
+        return;
+      }
+
       const result = await stripe?.redirectToCheckout({
         sessionId: res.sessionId,
       });
@@ -47,8 +80,8 @@ const CartSummary: React.FC<CartSummaryProps> = ({
       if (result?.error) {
         showToast(result.error.message, "error");
       }
-    } catch {
-      showToast("Failed to initiate checkout", "error");
+    } catch (error) {
+      showToast(getCheckoutErrorMessage(error), "error");
     }
   };
 

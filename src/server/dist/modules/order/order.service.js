@@ -21,20 +21,12 @@ class OrderService {
     }
     getAllOrders() {
         return __awaiter(this, void 0, void 0, function* () {
-            const orders = yield this.orderRepository.findAllOrders();
-            if (!orders || orders.length === 0) {
-                throw new AppError_1.default(404, "No orders found");
-            }
-            return orders;
+            return this.orderRepository.findAllOrders();
         });
     }
     getUserOrders(userId) {
         return __awaiter(this, void 0, void 0, function* () {
-            const orders = yield this.orderRepository.findOrdersByUserId(userId);
-            if (!orders || orders.length === 0) {
-                throw new AppError_1.default(404, "No orders found for this user");
-            }
-            return orders;
+            return this.orderRepository.findOrdersByUserId(userId);
         });
     }
     getOrderDetails(orderId, userId) {

@@ -4,7 +4,11 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useQuery } from "@apollo/client";
 import { motion, AnimatePresence } from "framer-motion";
 import { Package, Filter } from "lucide-react";
-import { GET_PRODUCTS, GET_CATEGORIES } from "@/app/gql/Product";
+import {
+  GET_PRODUCTS,
+  GET_CATEGORIES,
+  GET_SHOP_FILTER_OPTIONS,
+} from "@/app/gql/Product";
 import { Product } from "@/app/types/productTypes";
 import ProductCard from "../product/ProductCard";
 import MainLayout from "@/app/components/templates/MainLayout";
@@ -29,6 +33,8 @@ const ShopPage: React.FC = () => {
         ? parseFloat(searchParams.get("maxPrice")!)
         : undefined,
       categoryId: searchParams.get("categoryId") || undefined,
+      color: searchParams.get("color") || undefined,
+      gender: searchParams.get("gender") || undefined,
     }),
     [searchParams]
   );
@@ -51,6 +57,12 @@ const ShopPage: React.FC = () => {
   const { data: categoriesData } = useQuery(GET_CATEGORIES);
   const categories = categoriesData?.categories || [];
   console.log("Categories data:", categories);
+
+  const { data: filterOptionsData } = useQuery(GET_SHOP_FILTER_OPTIONS, {
+    fetchPolicy: "cache-first",
+  });
+  const colors = filterOptionsData?.shopFilterOptions?.colors || [];
+  const genders = filterOptionsData?.shopFilterOptions?.genders || [];
 
   const {
     data: productsData,
@@ -121,6 +133,8 @@ const ShopPage: React.FC = () => {
     if (newFilters.maxPrice)
       query.set("maxPrice", newFilters.maxPrice.toString());
     if (newFilters.categoryId) query.set("categoryId", newFilters.categoryId);
+    if (newFilters.color) query.set("color", newFilters.color);
+    if (newFilters.gender) query.set("gender", newFilters.gender);
 
     router.push(`/shop?${query.toString()}`);
   };
@@ -204,6 +218,8 @@ const ShopPage: React.FC = () => {
                       initialFilters={initialFilters}
                       onFilterChange={updateFilters}
                       categories={categories}
+                      colors={colors}
+                      genders={genders}
                     />
                   </div>
                 </motion.div>
@@ -232,6 +248,8 @@ const ShopPage: React.FC = () => {
                       initialFilters={initialFilters}
                       onFilterChange={updateFilters}
                       categories={categories}
+                      colors={colors}
+                      genders={genders}
                       isMobile={true}
                       onCloseMobile={() => setSidebarOpen(false)}
                     />

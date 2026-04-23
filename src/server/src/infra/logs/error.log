@@ -542,3 +542,23 @@ Foreign key constraint violated on the constraint: `CategoryAttribute_categoryId
 [2026-04-20T21:39:51.348Z] [31MERROR[39M: Invalid access token, please log in
 [2026-04-20T22:16:14.408Z] [31MERROR[39M: Invalid access token, please log in
 [2026-04-20T22:22:27.958Z] [31MERROR[39M: No orders found for this user
+[2026-04-20T22:40:09.304Z] [31MERROR[39M: Invalid access token, please log in
+[2026-04-20T22:54:35.385Z] [31MERROR[39M: Invalid API Key provided: sk_test_*ummy
+[2026-04-20T22:55:17.396Z] [31MERROR[39M: Invalid access token, please log in
+[2026-04-20T22:55:17.616Z] [31MERROR[39M: Invalid API Key provided: sk_test_*ummy
+[2026-04-20T22:56:34.796Z] [31MERROR[39M: Invalid API Key provided: sk_test_*ummy
+[2026-04-20T23:00:30.279Z] [31MERROR[39M: Invalid API Key provided: sk_test_*ummy
+[2026-04-20T23:00:40.062Z] [31MERROR[39M: Invalid API Key provided: sk_test_*ummy
+[2026-04-20T23:13:40.404Z] [31MERROR[39M: Invalid access token, please log in
+[2026-04-20T23:23:03.134Z] [31MERROR[39M: Invalid API Key provided: sk_test_*ummy
+[2026-04-20T23:23:07.113Z] [31MERROR[39M: Invalid API Key provided: sk_test_*ummy
+[2026-04-20T23:28:20.865Z] [31MERROR[39M: No orders found for this user
+[2026-04-20T23:30:37.994Z] [31MERROR[39M: Invalid access token, please log in
+[2026-04-20T23:30:38.339Z] [31MERROR[39M: No orders found for this user
+[2026-04-20T23:48:50.968Z] [31MERROR[39M: Invalid access token, please log in
+[2026-04-21T00:20:28.858Z] [31MERROR[39M: Invalid access token, please log in
+[2026-04-21T00:23:11.836Z] [31MERROR[39M: Email or password is incorrect.
+[2026-04-21T00:23:20.406Z] [31MERROR[39M: Email or password is incorrect.
+[2026-04-21T00:23:24.913Z] [31MERROR[39M: Email or password is incorrect.
+[2026-04-21T00:23:34.857Z] [31MERROR[39M: Unauthorized, please log in
+[2026-04-21T00:23:34.941Z] [31MERROR[39M: Refresh token not found

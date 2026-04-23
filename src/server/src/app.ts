@@ -1,4 +1,5 @@
 import express from "express";
+import path from "path";
 import dotenv from "dotenv";
 import "./infra/cloudinary/config";
 import bodyParser from "body-parser";
@@ -28,7 +29,7 @@ import { SocketManager } from "@/infra/socket/socket";
 import { connectDB } from "./infra/database/database.config";
 import { setupSwagger } from "./docs/swagger";
 
-dotenv.config();
+dotenv.config({ path: path.resolve(__dirname, "..", ".env") });
 
 export const createApp = async () => {
   const app = express();

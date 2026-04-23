@@ -49,7 +49,7 @@ const module_alias_1 = require("module-alias");
 const path_1 = __importDefault(require("path"));
 const dotenv_1 = __importDefault(require("dotenv"));
 // Load environment variables FIRST
-dotenv_1.default.config();
+dotenv_1.default.config({ path: path_1.default.resolve(__dirname, "..", ".env") });
 // Dynamically set module alias based on NODE_ENV
 const isProduction = process.env.NODE_ENV === "production";
 const projectRoot = path_1.default.resolve(__dirname, ".."); // Move up from src to project root

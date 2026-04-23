@@ -1,6 +1,6 @@
 import stripe from "@/infra/payment/stripe";
 import AppError from "@/shared/errors/AppError";
-import prisma from "@/infra/database/database.config";
+import { WebhookService } from "../webhook/webhook.service";
 
 const PLACEHOLDER_IMAGE = "https://via.placeholder.com/150";
 
@@ -13,7 +13,7 @@ function validImage(url: string): string {
 }
 
 export class CheckoutService {
-  constructor() {}
+  constructor(private webhookService: WebhookService) {}
 
   async createStripeSession(cart: any, userId: string) {
     // Validate stock for all cart items
@@ -57,11 +57,15 @@ export class CheckoutService {
         allowed_countries: ["US", "CA", "MX", "EG"],
       },
       mode: "payment",
-      success_url: `${clientUrl}/orders`,
+      success_url: `${clientUrl}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${clientUrl}/cancel`,
       metadata: { userId, cartId: cart.id },
     });
 
     return session;
+  }
+
+  async confirmStripeSession(sessionId: string, userId: string) {
+    return this.webhookService.confirmCheckoutCompletion(sessionId, userId);
   }
 }

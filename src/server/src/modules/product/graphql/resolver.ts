@@ -28,12 +28,19 @@ export const productResolvers = {
           minPrice?: number;
           maxPrice?: number;
           categoryId?: string;
+          color?: string;
+          gender?: string;
           flags?: string[];
         };
       },
       context: Context
     ) => {
       const where: any = {};
+      const variantFilters: any = {};
+      const attributeConditions: any[] = [];
+
+      const normalizedColor = filters.color?.trim().toLowerCase();
+      const normalizedGender = filters.gender?.trim().toLowerCase();
 
       // Search filter
       if (filters.search) {
@@ -66,13 +73,51 @@ export const productResolvers = {
 
       // Price filter (based on variants)
       if (filters.minPrice !== undefined || filters.maxPrice !== undefined) {
-        where.variants = {
-          some: {
-            price: {
-              ...(filters.minPrice !== undefined && { gte: filters.minPrice }),
-              ...(filters.maxPrice !== undefined && { lte: filters.maxPrice }),
+        variantFilters.price = {
+          ...(filters.minPrice !== undefined && { gte: filters.minPrice }),
+          ...(filters.maxPrice !== undefined && { lte: filters.maxPrice }),
+        };
+      }
+
+      if (normalizedColor) {
+        attributeConditions.push({
+          attributes: {
+            some: {
+              attribute: {
+                slug: "color",
+              },
+              value: {
+                slug: normalizedColor,
+              },
             },
           },
+        });
+      }
+
+      if (normalizedGender) {
+        attributeConditions.push({
+          attributes: {
+            some: {
+              attribute: {
+                slug: "gender",
+              },
+              value: {
+                slug: normalizedGender,
+              },
+            },
+          },
+        });
+      }
+
+      if (attributeConditions.length === 1) {
+        Object.assign(variantFilters, attributeConditions[0]);
+      } else if (attributeConditions.length > 1) {
+        variantFilters.AND = attributeConditions;
+      }
+
+      if (Object.keys(variantFilters).length > 0) {
+        where.variants = {
+          some: variantFilters,
         };
       }
 
@@ -223,6 +268,56 @@ export const productResolvers = {
           },
         },
       });
+    },
+    shopFilterOptions: async (_: any, __: any, context: Context) => {
+      const variantAttributes = await context.prisma.productVariantAttribute.findMany(
+        {
+          where: {
+            attribute: {
+              slug: {
+                in: ["color", "gender"],
+              },
+            },
+          },
+          include: {
+            attribute: true,
+            value: true,
+          },
+        }
+      );
+
+      const grouped = {
+        colors: [] as Array<{ id: string; value: string; slug: string }>,
+        genders: [] as Array<{ id: string; value: string; slug: string }>,
+      };
+
+      const seen = {
+        colors: new Set<string>(),
+        genders: new Set<string>(),
+      };
+
+      for (const item of variantAttributes) {
+        const targetKey =
+          item.attribute.slug === "color"
+            ? "colors"
+            : item.attribute.slug === "gender"
+            ? "genders"
+            : null;
+
+        if (!targetKey || seen[targetKey].has(item.value.id)) continue;
+
+        seen[targetKey].add(item.value.id);
+        grouped[targetKey].push({
+          id: item.value.id,
+          value: item.value.value,
+          slug: item.value.slug,
+        });
+      }
+
+      grouped.colors.sort((a, b) => a.value.localeCompare(b.value));
+      grouped.genders.sort((a, b) => a.value.localeCompare(b.value));
+
+      return grouped;
     },
   },
 

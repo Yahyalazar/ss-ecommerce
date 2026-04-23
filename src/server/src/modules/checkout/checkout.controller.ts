@@ -40,4 +40,27 @@ export class CheckoutController {
       timePeriod: 0,
     });
   });
+
+  confirmCheckout = asyncHandler(async (req: Request, res: Response) => {
+    const userId = req.user?.id;
+    const { sessionId } = req.body;
+
+    if (!userId) {
+      throw new AppError(400, "User not found");
+    }
+
+    if (!sessionId) {
+      throw new AppError(400, "Session ID is required");
+    }
+
+    const { order } = await this.checkoutService.confirmStripeSession(
+      sessionId,
+      userId
+    );
+
+    sendResponse(res, 200, {
+      data: { order },
+      message: "Checkout confirmed successfully",
+    });
+  });
 }
