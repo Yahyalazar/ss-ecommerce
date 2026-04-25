@@ -8,7 +8,6 @@ import {
   Paperclip, 
   Smile, 
   X, 
-  Check,
   Pause,
   Square
 } from "lucide-react";
@@ -32,7 +31,6 @@ const ChatInput: React.FC<ChatInputProps> = ({
   const [recording, setRecording] = useState(false);
   const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
   const [recordingTime, setRecordingTime] = useState(0);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
@@ -45,10 +43,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
   useEffect(() => {
     if (selectedFile) {
       const url = URL.createObjectURL(selectedFile);
-      setPreviewUrl(url);
       return () => URL.revokeObjectURL(url);
-    } else {
-      setPreviewUrl(null);
     }
   }, [selectedFile]);
 
@@ -122,35 +117,38 @@ const ChatInput: React.FC<ChatInputProps> = ({
   const cancelMedia = () => {
     setSelectedFile(null);
     setAudioBlob(null);
-    setPreviewUrl(null);
     if (mediaRecorder) {
       stopRecording();
     }
   };
 
-  const confirmSend = () => {
+  const getPendingFile = () => {
     if (selectedFile) {
-      onSendMessage(selectedFile, message);
-      setSelectedFile(null);
-      setPreviewUrl(null);
-    } else if (audioBlob) {
-      const file = new File([audioBlob], "voice_message.mp3", {
+      return selectedFile;
+    }
+
+    if (audioBlob) {
+      return new File([audioBlob], "voice_message.mp3", {
         type: "audio/mp3",
       });
-      onSendMessage(file, message);
-      setAudioBlob(null);
     }
-    setMessage("");
+
+    return undefined;
   };
 
   const handleSend = () => {
-    if (message.trim() || selectedFile || audioBlob) {
-      onSendMessage(selectedFile || audioBlob ? undefined : undefined, message.trim());
-      setMessage("");
-      setSelectedFile(null);
-      setAudioBlob(null);
-      setPreviewUrl(null);
+    const trimmedMessage = message.trim();
+    const pendingFile = getPendingFile();
+
+    if (!trimmedMessage && !pendingFile) {
+      return;
     }
+
+    onSendMessage(pendingFile, trimmedMessage || undefined);
+    setMessage("");
+    setSelectedFile(null);
+    setAudioBlob(null);
+    setShowEmojiPicker(false);
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {

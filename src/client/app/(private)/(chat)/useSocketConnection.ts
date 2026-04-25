@@ -1,28 +1,22 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useState } from "react";
 import { io, Socket } from "socket.io-client";
+import { API_ORIGIN } from "@/app/lib/constants/config";
 
 export const useSocketConnection = (chatId: string) => {
-  console.log("chatId to connect => ", chatId);
-  const socketRef = useRef<Socket | null>(null);
+  const [socket, setSocket] = useState<Socket | null>(null);
 
   useEffect(() => {
-    // Get server URL based on environment
-    const serverUrl =
-      process.env.NODE_ENV === "production"
-        ? "https://<domain>.com"
-        : "http://localhost:5000";
+    const nextSocket = io(API_ORIGIN, {
+      withCredentials: true,
+    });
 
-    // Initialize socket connection
-    socketRef.current = io(serverUrl);
+    nextSocket.emit("joinChat", chatId);
+    setSocket(nextSocket);
 
-    // Join specific chat room
-    socketRef.current.emit("joinChat", chatId);
-
-    // Clean up on component unmount
     return () => {
-      socketRef.current?.disconnect();
+      nextSocket.disconnect();
     };
   }, [chatId]);
 
-  return socketRef.current;
+  return socket;
 };

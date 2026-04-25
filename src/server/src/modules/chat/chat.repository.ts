@@ -64,6 +64,14 @@ export class ChatRepository {
     });
   }
 
+  async touchChat(chatId: string): Promise<Chat> {
+    return prisma.chat.update({
+      where: { id: chatId },
+      data: { updatedAt: new Date() },
+      include: { user: true, messages: { include: { sender: true } } },
+    });
+  }
+
   async updateChatStatus(
     chatId: string,
     status: "OPEN" | "RESOLVED"

@@ -23,6 +23,11 @@ const AdminChatsPage = () => {
       showToast("Chat status updated", "success");
       console.log("chat status updated");
       refetch();
+    },
+    () => {
+      showToast("New customer message received", "success");
+      console.log("chat message created");
+      refetch();
     }
   );
 

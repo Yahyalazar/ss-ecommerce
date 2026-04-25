@@ -45,6 +45,7 @@ export const apiSlice = createApi({
     "Logs",
     "Attribute",
     "Variant",
+    "Chat",
   ],
   endpoints: () => ({}),
 });

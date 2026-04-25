@@ -85,7 +85,12 @@ export class ChatService {
       type,
       url
     );
+    await this.chatRepository.touchChat(chatId);
     this.io.to(`chat:${chatId}`).emit("newMessage", message);
+    this.io.to("admin").emit("chatMessageCreated", {
+      chatId,
+      message,
+    });
     return message;
   }
 

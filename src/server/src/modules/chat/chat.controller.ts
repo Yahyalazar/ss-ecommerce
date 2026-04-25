@@ -83,7 +83,8 @@ export class ChatController {
   });
 
   sendMessage = asyncHandler(async (req: Request, res: Response) => {
-    const { chatId, content } = req.body;
+    const { chatId } = req.params;
+    const { content } = req.body;
     const user = req.user!;
     const file = req.file;
     console.log("file => ", file);

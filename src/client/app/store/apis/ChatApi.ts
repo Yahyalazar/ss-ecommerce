@@ -5,16 +5,24 @@ export const chatApi = apiSlice.injectEndpoints({
     // GET /chat/:id
     getChat: builder.query({
       query: (id: string) => `/chat/${id}`,
+      providesTags: (_result, _error, id: string) => [{ type: "Chat", id }],
     }),
 
     // GET /chat/user/:userId
     getUserChats: builder.query({
       query: () => `/chat/user`,
+      providesTags: [{ type: "Chat", id: "USER_LIST" }],
     }),
 
     // GET /chat
     getAllChats: builder.query({
-      query: () => "/chat",
+      query: (status?: "OPEN" | "RESOLVED") => ({
+        url: "/chat",
+        params: status ? { status } : undefined,
+      }),
+      providesTags: (_result, _error, status?: "OPEN" | "RESOLVED") => [
+        { type: "Chat", id: `ADMIN_LIST:${status || "ALL"}` },
+      ],
     }),
 
     // POST /chat
@@ -23,6 +31,11 @@ export const chatApi = apiSlice.injectEndpoints({
         url: "/chat",
         method: "POST",
       }),
+      invalidatesTags: [
+        { type: "Chat", id: "USER_LIST" },
+        { type: "Chat", id: "ADMIN_LIST:ALL" },
+        { type: "Chat", id: "ADMIN_LIST:OPEN" },
+      ],
     }),
 
     // POST /chat/:chatId/message
@@ -46,6 +59,13 @@ export const chatApi = apiSlice.injectEndpoints({
           body: formData,
         };
       },
+      invalidatesTags: (_result, _error, { chatId }: { chatId: string }) => [
+        { type: "Chat", id: chatId },
+        { type: "Chat", id: "USER_LIST" },
+        { type: "Chat", id: "ADMIN_LIST:ALL" },
+        { type: "Chat", id: "ADMIN_LIST:OPEN" },
+        { type: "Chat", id: "ADMIN_LIST:RESOLVED" },
+      ],
     }),
     // PATCH /chat/:chatId/status
     updateChatStatus: builder.mutation({
@@ -60,6 +80,13 @@ export const chatApi = apiSlice.injectEndpoints({
         method: "PATCH",
         body: { status },
       }),
+      invalidatesTags: (_result, _error, { chatId }: { chatId: string }) => [
+        { type: "Chat", id: chatId },
+        { type: "Chat", id: "USER_LIST" },
+        { type: "Chat", id: "ADMIN_LIST:ALL" },
+        { type: "Chat", id: "ADMIN_LIST:OPEN" },
+        { type: "Chat", id: "ADMIN_LIST:RESOLVED" },
+      ],
     }),
   }),
 });

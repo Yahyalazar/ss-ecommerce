@@ -3,7 +3,7 @@ import { Socket } from "socket.io-client";
 
 export const useChatMessages = (
   chatId: string,
-  user: { id: string; name: string; role: string },
+  user: { id: string; name: string; role: string } | undefined,
   chat: any,
   socket: Socket | null,
   sendMessage: any
@@ -66,7 +66,7 @@ export const useChatMessages = (
     });
 
     socket.on("userTyping", (typingUser) => {
-      if (typingUser.id !== user.id) {
+      if (typingUser.id !== user?.id) {
         setIsTyping(true);
         const timeout = setTimeout(() => setIsTyping(false), 3000);
         setTypingTimeoutRef(timeout);
@@ -78,26 +78,49 @@ export const useChatMessages = (
       socket.off("userTyping");
       if (typingTimeout) clearTimeout(typingTimeout);
     };
-  }, [socket, user.id, typingTimeout]);
+  }, [socket, typingTimeout, user?.id]);
 
   // Emit typing event
   useEffect(() => {
-    if (message && socket) {
+    if (message && socket && user) {
       socket.emit("typing", { chatId, user });
     }
   }, [message, socket, chatId, user]);
 
   // Send a message
-  const handleSendMessage = async (file?: File) => {
-    if (!message.trim() && !file) return;
+  const handleSendMessage = async (file?: File, content?: string) => {
+    const trimmedContent = content?.trim() ?? message.trim();
+
+    if (!trimmedContent && !file) return;
 
     try {
       const result = await sendMessage({
         chatId,
-        content: message || undefined,
+        content: trimmedContent || undefined,
         file,
       }).unwrap();
-      console.log("result => ", result);
+
+      const sentMessage = result?.message;
+
+      if (sentMessage) {
+        setMessages((prev) => {
+          const normalizedMessage = {
+            ...sentMessage,
+            sender: sentMessage.sender || { id: sentMessage.senderId },
+          };
+          const exists = prev.some((msg) => msg.id === normalizedMessage.id);
+
+          if (exists) {
+            return prev;
+          }
+
+          return [...prev, normalizedMessage].sort(
+            (a, b) =>
+              new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+          );
+        });
+      }
+
       setMessage("");
     } catch (err) {
       console.error("Failed to send message:", err);

@@ -1,21 +1,18 @@
 import { useEffect, useRef } from "react";
 import { io, Socket } from "socket.io-client";
+import { API_ORIGIN } from "@/app/lib/constants/config";
 
 export const useAdminSocketEvents = (
   onChatCreated: () => void,
-  onChatStatusUpdated: () => void
+  onChatStatusUpdated: () => void,
+  onChatMessageCreated?: () => void
 ) => {
   const socketRef = useRef<Socket | null>(null);
 
   useEffect(() => {
-    // Get server URL based on environment
-    const serverUrl =
-      process.env.NODE_ENV === "production"
-        ? "https://egwinch.com"
-        : "http://localhost:5000";
-
-    // Initialize socket connection
-    socketRef.current = io(serverUrl);
+    socketRef.current = io(API_ORIGIN, {
+      withCredentials: true,
+    });
 
     // Join admin room
     socketRef.current.emit("joinAdmin");
@@ -31,13 +28,19 @@ export const useAdminSocketEvents = (
       onChatStatusUpdated();
     });
 
+    socketRef.current.on("chatMessageCreated", (payload) => {
+      console.log("Chat message created:", payload);
+      onChatMessageCreated?.();
+    });
+
     // Clean up on component unmount
     return () => {
       socketRef.current?.off("chatCreated");
       socketRef.current?.off("chatStatusUpdated");
+      socketRef.current?.off("chatMessageCreated");
       socketRef.current?.disconnect();
     };
-  }, [onChatCreated, onChatStatusUpdated]);
+  }, [onChatCreated, onChatMessageCreated, onChatStatusUpdated]);
 
   return socketRef.current;
 };
