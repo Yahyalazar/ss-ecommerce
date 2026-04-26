@@ -11,7 +11,6 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ChatService = void 0;
 const cloudinary_1 = require("cloudinary");
-const stream_1 = require("stream");
 class ChatService {
     constructor(chatRepository, io) {
         this.chatRepository = chatRepository;
@@ -50,6 +49,11 @@ class ChatService {
             let type = "TEXT";
             let url;
             if (file) {
+                const isImageUpload = file.mimetype.startsWith("image/");
+                const isAudioUpload = file.mimetype.startsWith("audio/");
+                if (!isImageUpload && !isAudioUpload) {
+                    throw new Error("Only image and audio files are supported");
+                }
                 console.log("File received:", {
                     mimetype: file.mimetype,
                     size: file.size,
@@ -57,10 +61,8 @@ class ChatService {
                 });
                 try {
                     const uploadResult = yield new Promise((resolve, reject) => {
-                        const stream = cloudinary_1.v2.uploader.upload_stream({
-                            resource_type: file.mimetype.startsWith("image/")
-                                ? "image"
-                                : "video",
+                        const uploadStream = cloudinary_1.v2.uploader.upload_stream({
+                            resource_type: isImageUpload ? "image" : "video",
                             folder: "chat_media",
                         }, (error, result) => {
                             if (error)
@@ -68,13 +70,10 @@ class ChatService {
                             else
                                 resolve(result);
                         });
-                        const bufferStream = new stream_1.Readable();
-                        bufferStream.push(file.buffer);
-                        bufferStream.push(null);
-                        bufferStream.pipe(stream);
+                        uploadStream.end(file.buffer);
                     });
                     console.log("Cloudinary upload result:", uploadResult);
-                    type = file.mimetype.startsWith("image/") ? "IMAGE" : "VOICE";
+                    type = isImageUpload ? "IMAGE" : "VOICE";
                     url = uploadResult.secure_url;
                 }
                 catch (error) {

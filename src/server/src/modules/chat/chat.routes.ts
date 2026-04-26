@@ -2,7 +2,7 @@ import express from "express";
 import { Server as SocketIOServer } from "socket.io";
 import { makeChatController } from "./chat.factory";
 import protect from "@/shared/middlewares/protect";
-import upload from "@/shared/middlewares/upload";
+import chatUpload from "@/shared/middlewares/chatUpload";
 
 export const configureChatRoutes = (io: SocketIOServer) => {
   const router = express.Router();
@@ -120,7 +120,7 @@ export const configureChatRoutes = (io: SocketIOServer) => {
   router.post(
     "/:chatId/message",
     protect,
-    upload.single("file"),
+    chatUpload.single("file"),
     chatController.sendMessage
   );
 

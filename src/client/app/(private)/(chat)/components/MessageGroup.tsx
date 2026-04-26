@@ -17,7 +17,7 @@ const MessageGroup: React.FC<MessageGroupProps> = ({
 }) => {
   return (
     <div className={`flex ${isCurrentUser ? 'justify-end' : 'justify-start'}`}>
-      <div className={`flex flex-col space-y-1 max-w-[70%] ${isCurrentUser ? 'items-end' : 'items-start'}`}>
+      <div className={`flex max-w-full flex-col space-y-1 sm:max-w-[80%] lg:max-w-[70%] ${isCurrentUser ? 'items-end' : 'items-start'}`}>
         {messages.map((message, index) => (
           <motion.div
             key={message.id}
@@ -29,7 +29,7 @@ const MessageGroup: React.FC<MessageGroupProps> = ({
               type: "spring",
               stiffness: 200
             }}
-            className="w-full"
+            className="max-w-full"
           >
             <MessageItem
               message={message}

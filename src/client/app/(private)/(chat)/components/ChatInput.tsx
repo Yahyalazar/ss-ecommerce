@@ -1,17 +1,134 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
-import { 
-  Send, 
-  Mic, 
-  Image as ImageIcon, 
-  Paperclip, 
-  Smile, 
-  X, 
+import React, { useEffect, useRef, useState } from "react";
+import {
+  Send,
+  Mic,
+  Image as ImageIcon,
+  Paperclip,
+  Smile,
+  X,
   Pause,
-  Square
+  Square,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+
+const AUDIO_MIME_TYPES = [
+  "audio/webm;codecs=opus",
+  "audio/webm",
+  "audio/ogg;codecs=opus",
+  "audio/ogg",
+  "audio/mp4",
+  "audio/mpeg",
+];
+
+const EMOJIS = [
+  "\u{1F60A}",
+  "\u{1F602}",
+  "\u{2764}\u{FE0F}",
+  "\u{1F44D}",
+  "\u{1F389}",
+  "\u{1F525}",
+  "\u{1F60E}",
+  "\u{1F914}",
+  "\u{1F622}",
+  "\u{1F621}",
+];
+
+const MAX_IMAGE_UPLOAD_DIMENSION = 1600;
+
+const getPreferredAudioMimeType = () => {
+  if (
+    typeof MediaRecorder === "undefined" ||
+    typeof MediaRecorder.isTypeSupported !== "function"
+  ) {
+    return undefined;
+  }
+
+  return AUDIO_MIME_TYPES.find((mimeType) =>
+    MediaRecorder.isTypeSupported(mimeType)
+  );
+};
+
+const getAudioFileExtension = (mimeType: string) => {
+  if (mimeType.includes("ogg")) return "ogg";
+  if (mimeType.includes("mp4")) return "m4a";
+  if (mimeType.includes("mpeg") || mimeType.includes("mp3")) return "mp3";
+  return "webm";
+};
+
+const readFileAsDataUrl = (file: File) =>
+  new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result || ""));
+    reader.onerror = () => reject(reader.error || new Error("Failed to read file"));
+    reader.readAsDataURL(file);
+  });
+
+const loadImageElement = (src: string) =>
+  new Promise<HTMLImageElement>((resolve, reject) => {
+    const image = new Image();
+    image.onload = () => resolve(image);
+    image.onerror = () => reject(new Error("Failed to load image"));
+    image.src = src;
+  });
+
+const normalizeImageFile = async (file: File) => {
+  if (!file.type.startsWith("image/")) {
+    return file;
+  }
+
+  try {
+    const dataUrl = await readFileAsDataUrl(file);
+    const image = await loadImageElement(dataUrl);
+    const longestSide = Math.max(image.naturalWidth, image.naturalHeight);
+    const scale =
+      longestSide > MAX_IMAGE_UPLOAD_DIMENSION
+        ? MAX_IMAGE_UPLOAD_DIMENSION / longestSide
+        : 1;
+    const width = Math.max(1, Math.round(image.naturalWidth * scale));
+    const height = Math.max(1, Math.round(image.naturalHeight * scale));
+    const canvas = document.createElement("canvas");
+    const context = canvas.getContext("2d");
+
+    if (!context) {
+      return file;
+    }
+
+    canvas.width = width;
+    canvas.height = height;
+
+    const preserveTransparency =
+      file.type === "image/png" || file.type === "image/webp";
+    const outputType = preserveTransparency ? "image/png" : "image/jpeg";
+
+    if (!preserveTransparency) {
+      context.fillStyle = "#ffffff";
+      context.fillRect(0, 0, width, height);
+    }
+
+    context.drawImage(image, 0, 0, width, height);
+
+    const blob = await new Promise<Blob | null>((resolve) => {
+      canvas.toBlob(resolve, outputType, 0.92);
+    });
+
+    if (!blob) {
+      return file;
+    }
+
+    const baseName = file.name.replace(/\.[^.]+$/, "") || "chat-image";
+    const extension = outputType === "image/png" ? "png" : "jpg";
+
+    return new File([blob], `${baseName}.${extension}`, {
+      type: outputType,
+      lastModified: Date.now(),
+    });
+  } catch (error) {
+    console.error("Failed to normalize image file:", error);
+    return file;
+  }
+};
 
 interface ChatInputProps {
   message: string;
@@ -26,7 +143,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
   setMessage,
   onSendMessage,
   disabled = false,
-  isTyping = false
+  isTyping = false,
 }) => {
   const [recording, setRecording] = useState(false);
   const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
@@ -34,12 +151,11 @@ const ChatInput: React.FC<ChatInputProps> = ({
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
   const [recordingTime, setRecordingTime] = useState(0);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
-  
+
   const fileInputRef = useRef<HTMLInputElement>(null);
   const audioChunks = useRef<Blob[]>([]);
   const recordingInterval = useRef<NodeJS.Timeout | null>(null);
 
-  // Cleanup preview URL when file changes
   useEffect(() => {
     if (selectedFile) {
       const url = URL.createObjectURL(selectedFile);
@@ -47,11 +163,10 @@ const ChatInput: React.FC<ChatInputProps> = ({
     }
   }, [selectedFile]);
 
-  // Recording timer
   useEffect(() => {
     if (recording) {
       recordingInterval.current = setInterval(() => {
-        setRecordingTime(prev => prev + 1);
+        setRecordingTime((prev) => prev + 1);
       }, 1000);
     } else {
       if (recordingInterval.current) {
@@ -71,13 +186,17 @@ const ChatInput: React.FC<ChatInputProps> = ({
   const formatRecordingTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
+    return `${mins}:${secs.toString().padStart(2, "0")}`;
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      setSelectedFile(file);
+      setAudioBlob(null);
+      const nextFile = file.type.startsWith("image/")
+        ? await normalizeImageFile(file)
+        : file;
+      setSelectedFile(nextFile);
       if (fileInputRef.current) fileInputRef.current.value = "";
     }
   };
@@ -85,17 +204,34 @@ const ChatInput: React.FC<ChatInputProps> = ({
   const startRecording = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const recorder = new MediaRecorder(stream);
+      const preferredAudioMimeType = getPreferredAudioMimeType();
+      const recorder = preferredAudioMimeType
+        ? new MediaRecorder(stream, { mimeType: preferredAudioMimeType })
+        : new MediaRecorder(stream);
+
+      setSelectedFile(null);
+      setAudioBlob(null);
       setMediaRecorder(recorder);
       audioChunks.current = [];
 
       recorder.ondataavailable = (e) => {
-        audioChunks.current.push(e.data);
+        if (e.data.size > 0) {
+          audioChunks.current.push(e.data);
+        }
       };
 
       recorder.onstop = () => {
-        const audioBlob = new Blob(audioChunks.current, { type: "audio/mp3" });
-        setAudioBlob(audioBlob);
+        const recordedMimeType =
+          recorder.mimeType ||
+          audioChunks.current.find((chunk) => chunk.type)?.type ||
+          preferredAudioMimeType ||
+          "audio/webm";
+
+        const nextAudioBlob = new Blob(audioChunks.current, {
+          type: recordedMimeType,
+        });
+
+        setAudioBlob(nextAudioBlob);
         stream.getTracks().forEach((track) => track.stop());
       };
 
@@ -128,9 +264,13 @@ const ChatInput: React.FC<ChatInputProps> = ({
     }
 
     if (audioBlob) {
-      return new File([audioBlob], "voice_message.mp3", {
-        type: "audio/mp3",
-      });
+      const mimeType = audioBlob.type || "audio/webm";
+
+      return new File(
+        [audioBlob],
+        `voice-message.${getAudioFileExtension(mimeType)}`,
+        { type: mimeType }
+      );
     }
 
     return undefined;
@@ -158,23 +298,20 @@ const ChatInput: React.FC<ChatInputProps> = ({
     }
   };
 
-  const emojis = ["😊", "😂", "❤️", "👍", "🎉", "🔥", "😎", "🤔", "😢", "😡"];
-
   const addEmoji = (emoji: string) => {
-    setMessage(prev => prev + emoji);
+    setMessage(`${message}${emoji}`);
     setShowEmojiPicker(false);
   };
 
   return (
     <div className="border-t border-gray-200 bg-white p-4">
-      {/* Media Preview */}
       <AnimatePresence>
         {(selectedFile || audioBlob) && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            className="mb-3 p-3 bg-gray-50 rounded-lg border"
+            className="mb-3 rounded-lg border bg-gray-50 p-3"
           >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -193,7 +330,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
               </div>
               <button
                 onClick={cancelMedia}
-                className="p-1 hover:bg-gray-200 rounded-full transition-colors"
+                className="rounded-full p-1 transition-colors hover:bg-gray-200"
               >
                 <X size={16} />
               </button>
@@ -202,25 +339,24 @@ const ChatInput: React.FC<ChatInputProps> = ({
         )}
       </AnimatePresence>
 
-      {/* Recording Indicator */}
       <AnimatePresence>
         {recording && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            className="mb-3 p-3 bg-red-50 border border-red-200 rounded-lg"
+            className="mb-3 rounded-lg border border-red-200 bg-red-50 p-3"
           >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse" />
+                <div className="h-3 w-3 animate-pulse rounded-full bg-red-500" />
                 <span className="text-sm font-medium text-red-700">
                   Recording... {formatRecordingTime(recordingTime)}
                 </span>
               </div>
               <button
                 onClick={stopRecording}
-                className="p-2 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors"
+                className="rounded-full bg-red-500 p-2 text-white transition-colors hover:bg-red-600"
               >
                 <Square size={16} />
               </button>
@@ -229,41 +365,43 @@ const ChatInput: React.FC<ChatInputProps> = ({
         )}
       </AnimatePresence>
 
-      {/* Input Area */}
       <div className="flex items-end gap-2">
-        {/* File Upload */}
         <button
           onClick={() => fileInputRef.current?.click()}
           disabled={disabled}
-          className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50"
+          className="rounded-lg p-2 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700 disabled:opacity-50"
         >
           <Paperclip size={20} />
         </button>
 
-        {/* Emoji Picker */}
         <div className="relative">
           <button
             onClick={() => setShowEmojiPicker(!showEmojiPicker)}
             disabled={disabled}
-            className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50"
+            className="rounded-lg p-2 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700 disabled:opacity-50"
           >
             <Smile size={20} />
           </button>
-          
+
           <AnimatePresence>
             {showEmojiPicker && (
               <motion.div
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.95 }}
-                className="absolute bottom-full mb-2 left-0 bg-white border border-gray-200 rounded-lg shadow-lg p-2 z-10"
+                className="absolute bottom-full left-0 z-10 mb-2 w-64 rounded-xl border border-gray-200 bg-white p-3 shadow-lg"
               >
-                <div className="grid grid-cols-5 gap-1">
-                  {emojis.map((emoji, index) => (
+                <div className="grid grid-cols-5 gap-2">
+                  {EMOJIS.map((emoji, index) => (
                     <button
                       key={index}
+                      type="button"
                       onClick={() => addEmoji(emoji)}
-                      className="p-2 hover:bg-gray-100 rounded-lg transition-colors text-lg"
+                      className="flex h-10 w-10 items-center justify-center rounded-lg text-2xl leading-none transition-colors hover:bg-gray-100"
+                      style={{
+                        fontFamily:
+                          '"Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif',
+                      }}
                     >
                       {emoji}
                     </button>
@@ -274,53 +412,50 @@ const ChatInput: React.FC<ChatInputProps> = ({
           </AnimatePresence>
         </div>
 
-        {/* Text Input */}
-        <div className="flex-1 relative">
+        <div className="relative flex-1">
           <textarea
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             onKeyPress={handleKeyPress}
             placeholder="Type a message..."
             disabled={disabled}
-            className="w-full resize-none border border-gray-300 rounded-lg px-4 py-3 pr-12 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50 max-h-32"
+            className="max-h-32 w-full resize-none rounded-lg border border-gray-300 px-4 py-3 pr-12 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
             rows={1}
-            style={{ minHeight: '44px' }}
+            style={{ minHeight: "44px" }}
           />
-          
-          {/* Send Button */}
+
           <button
             onClick={handleSend}
-            disabled={disabled || (!message.trim() && !selectedFile && !audioBlob)}
-            className="absolute right-2 bottom-2 p-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={
+              disabled || recording || (!message.trim() && !selectedFile && !audioBlob)
+            }
+            className="absolute bottom-2 right-2 rounded-lg bg-blue-500 p-2 text-white transition-colors hover:bg-blue-600 disabled:cursor-not-allowed disabled:opacity-50"
           >
             <Send size={16} />
           </button>
         </div>
 
-        {/* Voice Recording */}
         <button
           onClick={recording ? stopRecording : startRecording}
           disabled={disabled}
-          className={`p-3 rounded-lg transition-colors disabled:opacity-50 ${
-            recording 
-              ? 'bg-red-500 text-white hover:bg-red-600' 
-              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+          className={`rounded-lg p-3 transition-colors disabled:opacity-50 ${
+            recording
+              ? "bg-red-500 text-white hover:bg-red-600"
+              : "bg-gray-100 text-gray-700 hover:bg-gray-200"
           }`}
         >
           {recording ? <Pause size={20} /> : <Mic size={20} />}
         </button>
       </div>
 
-      {/* Hidden File Input */}
       <input
         ref={fileInputRef}
         type="file"
         onChange={handleFileChange}
-        accept="image/*,audio/*,video/*,.pdf,.doc,.docx,.txt"
+        accept="image/*,audio/*"
         className="hidden"
       />
 
-      {/* Typing Indicator */}
       {isTyping && (
         <motion.div
           initial={{ opacity: 0 }}

@@ -7,7 +7,7 @@ exports.configureChatRoutes = void 0;
 const express_1 = __importDefault(require("express"));
 const chat_factory_1 = require("./chat.factory");
 const protect_1 = __importDefault(require("@/shared/middlewares/protect"));
-const upload_1 = __importDefault(require("@/shared/middlewares/upload"));
+const chatUpload_1 = __importDefault(require("@/shared/middlewares/chatUpload"));
 const configureChatRoutes = (io) => {
     const router = express_1.default.Router();
     const chatController = (0, chat_factory_1.makeChatController)(io);
@@ -116,7 +116,7 @@ const configureChatRoutes = (io) => {
      *       200:
      *         description: Message sent successfully.
      */
-    router.post("/:chatId/message", protect_1.default, upload_1.default.single("file"), chatController.sendMessage);
+    router.post("/:chatId/message", protect_1.default, chatUpload_1.default.single("file"), chatController.sendMessage);
     /**
      * @swagger
      * /chats/{chatId}/status:

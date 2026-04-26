@@ -1,9 +1,8 @@
 "use client";
 
 import React from "react";
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { User, Clock, Download, Play, Pause } from "lucide-react";
-import Image from "next/image";
 
 interface MessageItemProps {
   message: any;
@@ -24,7 +23,33 @@ const MessageItem: React.FC<MessageItemProps> = ({
 }) => {
   const [isPlaying, setIsPlaying] = React.useState(false);
   const [audioDuration, setAudioDuration] = React.useState(0);
+  const [isPreviewOpen, setIsPreviewOpen] = React.useState(false);
+  const [imageStatus, setImageStatus] = React.useState<"loading" | "loaded" | "error">("loading");
   const audioRef = React.useRef<HTMLAudioElement>(null);
+  const attachment = message.file || (
+    message.url
+      ? {
+          url: message.url,
+          type:
+            message.type === "IMAGE"
+              ? "image/*"
+              : message.type === "VOICE"
+              ? "audio/*"
+              : "application/octet-stream",
+          name: message.url.split("/").pop() || "attachment",
+        }
+      : null
+  );
+  const contentClassName = isCurrentUser ? "text-white" : "text-gray-700";
+  const isImageAttachment = Boolean(
+    attachment && attachment.type.startsWith("image/")
+  );
+
+  React.useEffect(() => {
+    if (isImageAttachment) {
+      setImageStatus("loading");
+    }
+  }, [attachment?.url, isImageAttachment]);
 
   const formatTime = (dateString: string) => {
     const date = new Date(dateString);
@@ -58,28 +83,65 @@ const MessageItem: React.FC<MessageItemProps> = ({
   };
 
   const renderMessageContent = () => {
-    if (message.file) {
-      const fileType = message.file.type;
+    if (attachment) {
+      const fileType = attachment.type;
       
       if (fileType.startsWith('image/')) {
         return (
           <div className="space-y-2">
             {message.content && (
-              <p className="text-sm text-gray-700">{message.content}</p>
+              <p className={`text-sm ${contentClassName}`}>{message.content}</p>
             )}
-            <div className="relative group">
-              <Image
-                src={message.file.url}
-                alt="Message attachment"
-                width={200}
-                height={200}
-                className="rounded-lg max-w-full h-auto cursor-pointer hover:opacity-90 transition-opacity"
-                onClick={() => window.open(message.file.url, '_blank')}
-              />
-              <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition-all rounded-lg flex items-center justify-center">
-                <Download size={20} className="text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+            {imageStatus === "error" ? (
+              <div className="flex w-full max-w-[18rem] flex-col gap-3 rounded-lg border border-red-200 bg-red-50 p-4 sm:max-w-[22rem]">
+                <span className="text-sm font-medium text-red-700">
+                  Image preview unavailable
+                </span>
+                <div className="flex gap-2">
+                  <a
+                    href={attachment.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="rounded-lg bg-red-600 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-red-700"
+                  >
+                    Open image
+                  </a>
+                  <a
+                    href={attachment.url}
+                    download
+                    className="rounded-lg border border-red-300 px-3 py-2 text-sm font-medium text-red-700 transition-colors hover:bg-red-100"
+                  >
+                    Download
+                  </a>
+                </div>
               </div>
-            </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setIsPreviewOpen(true)}
+                className="block text-left"
+              >
+                <div className="relative group w-fit max-w-[16rem] overflow-hidden rounded-lg border border-gray-200 bg-gray-100 sm:max-w-[20rem] lg:max-w-[22rem]">
+                  {imageStatus !== "loaded" && (
+                    <div className="absolute inset-0 z-10 flex items-center justify-center bg-gray-100/90 text-sm font-medium text-gray-500">
+                      Loading image...
+                    </div>
+                  )}
+                  <img
+                    src={attachment.url}
+                    alt="Message attachment"
+                    className="block h-auto max-h-[18rem] w-auto max-w-full object-contain transition-opacity hover:opacity-90"
+                    onLoad={() => setImageStatus("loaded")}
+                    onError={() => setImageStatus("error")}
+                    loading="lazy"
+                    decoding="async"
+                  />
+                  <div className="absolute inset-0 flex items-center justify-center rounded-lg bg-black bg-opacity-0 transition-all group-hover:bg-opacity-10">
+                    <Download size={20} className="text-white opacity-0 transition-opacity group-hover:opacity-100" />
+                  </div>
+                </div>
+              </button>
+            )}
           </div>
         );
       }
@@ -88,7 +150,7 @@ const MessageItem: React.FC<MessageItemProps> = ({
         return (
           <div className="space-y-2">
             {message.content && (
-              <p className="text-sm text-gray-700">{message.content}</p>
+              <p className={`text-sm ${contentClassName}`}>{message.content}</p>
             )}
             <div className="flex items-center gap-3 p-3 bg-gray-100 rounded-lg">
               <button
@@ -105,7 +167,7 @@ const MessageItem: React.FC<MessageItemProps> = ({
               </div>
               <audio
                 ref={audioRef}
-                src={message.file.url}
+                src={attachment.url}
                 onLoadedMetadata={handleAudioLoad}
                 onEnded={() => setIsPlaying(false)}
                 className="hidden"
@@ -119,22 +181,24 @@ const MessageItem: React.FC<MessageItemProps> = ({
       return (
         <div className="space-y-2">
           {message.content && (
-            <p className="text-sm text-gray-700">{message.content}</p>
+            <p className={`text-sm ${contentClassName}`}>{message.content}</p>
           )}
           <a
-            href={message.file.url}
+            href={attachment.url}
             download
             className="flex items-center gap-2 p-3 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
           >
             <Download size={16} />
-            <span className="text-sm font-medium">{message.file.name}</span>
+            <span className="text-sm font-medium">
+              {attachment.name || "Download attachment"}
+            </span>
           </a>
         </div>
       );
     }
     
     return (
-      <p className="text-sm text-gray-700 whitespace-pre-wrap">
+      <p className={`text-sm whitespace-pre-wrap ${contentClassName}`}>
         {message.content}
       </p>
     );
@@ -152,14 +216,18 @@ const MessageItem: React.FC<MessageItemProps> = ({
       )}
       
       {/* Message Content */}
-      <div className={`flex flex-col ${isCurrentUser ? 'items-end order-1' : 'items-start order-2'}`}>
+      <div className={`flex max-w-full flex-col ${isCurrentUser ? 'items-end order-1' : 'items-start order-2'}`}>
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          className={`px-4 py-2 rounded-2xl max-w-full ${
+          className={`max-w-full rounded-2xl ${
             isCurrentUser
               ? 'bg-blue-500 text-white rounded-br-md'
               : 'bg-white text-gray-900 rounded-bl-md shadow-sm border border-gray-200'
+          } ${
+            isImageAttachment
+              ? 'p-2'
+              : 'px-4 py-2'
           } ${
             isFirstInGroup && isLastInGroup
               ? 'rounded-2xl'
@@ -187,6 +255,32 @@ const MessageItem: React.FC<MessageItemProps> = ({
           </div>
         )}
       </div>
+
+      <AnimatePresence>
+        {isPreviewOpen && attachment?.url && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[70] flex items-center justify-center bg-black/80 p-4"
+            onClick={() => setIsPreviewOpen(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.96, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.96, opacity: 0 }}
+              className="max-h-full max-w-5xl overflow-hidden rounded-2xl bg-white shadow-2xl"
+              onClick={(event) => event.stopPropagation()}
+            >
+              <img
+                src={attachment.url}
+                alt="Full message attachment"
+                className="block max-h-[85vh] w-auto max-w-full object-contain"
+              />
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

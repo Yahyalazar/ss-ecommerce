@@ -1,5 +1,29 @@
 import { useState, useEffect } from "react";
 import { Socket } from "socket.io-client";
+import { normalizeMessage } from "./chatData";
+
+const sortMessages = (messages: any[]) =>
+  [...messages].sort(
+    (a, b) =>
+      new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+  );
+
+const mergeMessages = (currentMessages: any[], incomingMessages: any[]) => {
+  const messagesById = new Map<string, any>();
+
+  currentMessages.forEach((message) => {
+    if (!message?.id) return;
+    messagesById.set(message.id, normalizeMessage(message));
+  });
+
+  incomingMessages.forEach((message) => {
+    const normalizedMessage = normalizeMessage(message);
+    if (!normalizedMessage?.id) return;
+    messagesById.set(normalizedMessage.id, normalizedMessage);
+  });
+
+  return sortMessages(Array.from(messagesById.values()));
+};
 
 export const useChatMessages = (
   chatId: string,
@@ -15,54 +39,25 @@ export const useChatMessages = (
     null
   );
 
+  useEffect(() => {
+    setMessage("");
+    setMessages([]);
+    setIsTyping(false);
+  }, [chatId]);
+
   // Update messages when chat data is fetched
   useEffect(() => {
     if (chat?.messages) {
-      setMessages((prev) => {
-        // Filter out existing messages => where id is not in prev
-        const newMessages = chat.messages.filter(
-          (msg: any) => !prev.some((m) => m.id === msg.id)
-        );
-        return [...prev, ...newMessages].sort(
-          (a, b) =>
-            new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
-        );
-      });
+      setMessages((prev) => mergeMessages(prev, chat.messages));
     }
-  }, [chat]);
+  }, [chat?.messages]);
 
   // Handle real-time messages
   useEffect(() => {
     if (!socket) return;
 
     socket.on("newMessage", (newMessage) => {
-      setMessages((prev) => {
-        // Normalize sender field
-        // Normalization is the process of ensuring that the sender field is an object
-        const normalizedMessage = {
-          ...newMessage,
-          sender: newMessage.sender || { id: newMessage.senderId }, // ensure sender is an object
-        };
-        // Update existing message or append new one
-        const existingIndex = prev.findIndex(
-          (msg) => msg.id === normalizedMessage.id
-        );
-        // if message already exists
-        if (existingIndex !== -1) {
-          // Replace existing message with normalized version
-          const updatedMessages = [...prev]; // create a copy
-          updatedMessages[existingIndex] = normalizedMessage; // replace
-          return updatedMessages.sort(
-            (a, b) =>
-              new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime() // a - b sorts in ascending order, while b - a sorts in descending order
-          );
-        }
-        // Append new message
-        return [...prev, normalizedMessage].sort(
-          (a, b) =>
-            new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
-        );
-      });
+      setMessages((prev) => mergeMessages(prev, [newMessage]));
     });
 
     socket.on("userTyping", (typingUser) => {
@@ -100,25 +95,10 @@ export const useChatMessages = (
         file,
       }).unwrap();
 
-      const sentMessage = result?.message;
+      const sentMessage = normalizeMessage(result?.message);
 
       if (sentMessage) {
-        setMessages((prev) => {
-          const normalizedMessage = {
-            ...sentMessage,
-            sender: sentMessage.sender || { id: sentMessage.senderId },
-          };
-          const exists = prev.some((msg) => msg.id === normalizedMessage.id);
-
-          if (exists) {
-            return prev;
-          }
-
-          return [...prev, normalizedMessage].sort(
-            (a, b) =>
-              new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
-          );
-        });
+        setMessages((prev) => mergeMessages(prev, [sentMessage]));
       }
 
       setMessage("");

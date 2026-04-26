@@ -4,7 +4,6 @@ import React from "react";
 import {
   X,
   User,
-  Clock,
   MessageCircle,
   Phone,
   Video,
@@ -13,8 +12,11 @@ import {
   Plus,
 } from "lucide-react";
 import { motion } from "framer-motion";
-import { useGetMeQuery } from "@/app/store/apis/UserApi";
 import { useGetChatQuery } from "@/app/store/apis/ChatApi";
+import {
+  getConversationSubtitle,
+  getConversationTitle,
+} from "../chatData";
 
 interface ChatSidebarProps {
   chatId: string;
@@ -27,9 +29,7 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
   onClose,
   isMobile,
 }) => {
-  const { data: userData } = useGetMeQuery(undefined);
   const { data: chatData } = useGetChatQuery(chatId);
-  const user = userData?.user;
   const chat = chatData?.chat;
 
   const formatDate = (dateString: string) => {
@@ -91,9 +91,14 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
       <div className="p-4 border-b border-gray-200">
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium text-blue-900">
-              Support Ticket #{chatId.slice(-8)}
-            </span>
+            <div className="min-w-0">
+              <span className="block truncate text-sm font-medium text-blue-900">
+                {getConversationTitle(chat)}
+              </span>
+              <span className="block truncate text-xs text-blue-700">
+                {getConversationSubtitle(chat)}
+              </span>
+            </div>
             <div
               className={`w-2 h-2 rounded-full ${getStatusColor(
                 chat?.status || "CLOSED"
@@ -117,13 +122,13 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
             <div className="flex items-center gap-2">
               <User size={16} className="text-gray-500" />
               <span className="text-sm font-medium">
-                {chat?.customer?.name || "Unknown Customer"}
+                {getConversationTitle(chat)}
               </span>
             </div>
             <div className="flex items-center gap-2">
               <MessageCircle size={16} className="text-gray-500" />
               <span className="text-sm text-gray-600">
-                {chat?.customer?.email || "No email provided"}
+                {getConversationSubtitle(chat)}
               </span>
             </div>
           </div>

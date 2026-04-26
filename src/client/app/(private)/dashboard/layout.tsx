@@ -17,7 +17,7 @@ export default function DashboardLayout({
     <div className="flex min-h-screen flex-col md:flex-row">
       <Sidebar />
 
-      <div className="flex-1 flex flex-col">
+      <div className="flex min-h-0 flex-1 flex-col">
         <header className="flex items-center justify-between p-4 border-b border-gray-200 bg-white">
           <BreadCrumb />
           <div className="flex items-center gap-4 sm:gap-6">
@@ -47,7 +47,9 @@ export default function DashboardLayout({
           </div>
         </header>
 
-        <main className="flex-1 p-4 sm:p-6 overflow-y-auto">{children}</main>
+        <main className="flex-1 min-h-0 overflow-y-auto p-4 sm:p-6">
+          {children}
+        </main>
       </div>
     </div>
   );

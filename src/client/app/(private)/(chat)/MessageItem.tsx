@@ -2,7 +2,6 @@
 
 import React from "react";
 import AudioPlayer from "./AudioPlayer";
-import Image from "next/image";
 
 interface MessageItemProps {
   message: any;
@@ -27,12 +26,11 @@ const MessageItem: React.FC<MessageItemProps> = ({
         }`}
       >
         {isImage && message.url ? (
-          <Image
+          <img
             src={message.url}
             alt="Sent image"
-            width={200}
-            height={200}
             className="max-w-full h-auto rounded-lg"
+            loading="lazy"
           />
         ) : isAudio && message.url ? (
           <AudioPlayer src={message.url} />

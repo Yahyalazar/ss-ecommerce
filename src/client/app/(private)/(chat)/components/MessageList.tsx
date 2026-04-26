@@ -80,7 +80,7 @@ const MessageList: React.FC<MessageListProps> = ({
 
   if (isLoading) {
     return (
-      <div className="flex-1 overflow-y-auto p-4 bg-gray-50">
+      <div className="h-full overflow-y-auto bg-gray-50 p-4">
         <div className="space-y-4">
           {Array.from({ length: 5 }).map((_, index) => (
             <motion.div
@@ -103,8 +103,8 @@ const MessageList: React.FC<MessageListProps> = ({
   }
 
   return (
-    <div className="flex-1 overflow-y-auto bg-gray-50">
-      <div className="p-4 space-y-6">
+    <div className="h-full overflow-y-auto overscroll-contain bg-gray-50">
+      <div className="min-h-full space-y-6 p-4">
         <AnimatePresence>
           {groupedMessages.map((group, groupIndex) => (
             <motion.div

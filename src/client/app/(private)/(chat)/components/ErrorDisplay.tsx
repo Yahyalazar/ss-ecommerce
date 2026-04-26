@@ -31,7 +31,7 @@ const ErrorDisplay: React.FC<ErrorDisplayProps> = ({ error }) => {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-50 px-4">
+    <div className="flex h-full min-h-0 items-center justify-center bg-gray-50 px-4">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}

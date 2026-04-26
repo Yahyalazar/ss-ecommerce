@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 
 const ChatSkeletonLoader: React.FC = () => {
   return (
-    <div className="flex h-screen bg-gray-50">
+    <div className="flex h-full min-h-0 bg-gray-50">
       {/* Sidebar Skeleton */}
       <div className="w-80 bg-white shadow-lg">
         <div className="p-4 border-b border-gray-200">
@@ -49,7 +49,7 @@ const ChatSkeletonLoader: React.FC = () => {
       </div>
 
       {/* Main Chat Area */}
-      <div className="flex-1 flex flex-col bg-white">
+      <div className="flex min-h-0 flex-1 flex-col bg-white">
         {/* Header Skeleton */}
         <div className="p-4 border-b border-gray-200">
           <div className="flex items-center justify-between">
@@ -68,7 +68,7 @@ const ChatSkeletonLoader: React.FC = () => {
         </div>
 
         {/* Messages Skeleton */}
-        <div className="flex-1 overflow-y-auto p-4 bg-gray-50">
+        <div className="flex-1 overflow-y-auto bg-gray-50 p-4">
           <div className="space-y-6">
             {Array.from({ length: 5 }).map((_, index) => (
               <motion.div

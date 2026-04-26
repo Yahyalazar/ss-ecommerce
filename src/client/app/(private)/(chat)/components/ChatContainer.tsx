@@ -66,10 +66,15 @@ const ChatContainer: React.FC<ChatContainerProps> = ({ chatId }) => {
     chat?.status === "OPEN";
 
   return (
-    <ChatLayout chatId={chatId}>
-      <div className="flex flex-col h-full">
+    <ChatLayout
+      chatId={chatId}
+      chat={chat}
+      onResolve={handleResolveChat}
+      canResolve={canResolve}
+    >
+      <div className="relative flex h-full min-h-0 flex-col">
         {/* Messages Area */}
-        <div className="flex-1 overflow-hidden">
+        <div className="h-0 flex-1 overflow-hidden">
           <MessageList
             messages={messages}
             currentUserId={user?.id || ""}
@@ -122,6 +127,7 @@ const ChatContainer: React.FC<ChatContainerProps> = ({ chatId }) => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 20 }}
+              className="shrink-0"
             >
               <ChatInput
                 message={message}
@@ -135,7 +141,7 @@ const ChatContainer: React.FC<ChatContainerProps> = ({ chatId }) => {
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="p-4 bg-gray-50 text-center text-gray-500 border-t border-gray-200"
+              className="shrink-0 border-t border-gray-200 bg-gray-50 p-4 text-center text-gray-500"
             >
               <div className="flex items-center justify-center gap-2">
                 <div className="w-2 h-2 bg-gray-400 rounded-full" />

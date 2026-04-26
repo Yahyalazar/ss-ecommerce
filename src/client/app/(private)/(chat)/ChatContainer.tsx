@@ -62,7 +62,7 @@ const ChatContainer: React.FC<ChatProps> = ({ chatId }) => {
   }
 
   const canResolve =
-    (user.role === "ADMIN" || user.role === "SUPERADMIN") &&
+    (user?.role === "ADMIN" || user?.role === "SUPERADMIN") &&
     chat?.status === "OPEN";
 
   return (
@@ -72,7 +72,7 @@ const ChatContainer: React.FC<ChatProps> = ({ chatId }) => {
         onResolve={handleResolveChat}
         canResolve={canResolve}
       />
-      <MessageList messages={messages} currentUserId={user.id} />
+      <MessageList messages={messages} currentUserId={user?.id || ""} />
       {isTyping && <ChatStatus isTyping={true} />}
       {/* {callStatus === "idle" && chat?.status === "OPEN" && (
         <button

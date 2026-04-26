@@ -57,7 +57,8 @@ class ChatRepository {
         return __awaiter(this, void 0, void 0, function* () {
             return database_config_1.default.chat.findMany({
                 where: status ? { status } : {},
-                include: { messages: { include: { sender: true } } },
+                include: { user: true, messages: { include: { sender: true } } },
+                orderBy: { updatedAt: "desc" },
             });
         });
     }

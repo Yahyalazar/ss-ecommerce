@@ -2,7 +2,6 @@ import { ChatRepository } from "./chat.repository";
 import { Chat, ChatMessage } from "@prisma/client";
 import { Server as SocketIOServer } from "socket.io";
 import { v2 as cloudinary } from "cloudinary";
-import { Readable } from "stream";
 
 export class ChatService {
   constructor(
@@ -43,6 +42,13 @@ export class ChatService {
     let url: string | undefined;
 
     if (file) {
+      const isImageUpload = file.mimetype.startsWith("image/");
+      const isAudioUpload = file.mimetype.startsWith("audio/");
+
+      if (!isImageUpload && !isAudioUpload) {
+        throw new Error("Only image and audio files are supported");
+      }
+
       console.log("File received:", {
         mimetype: file.mimetype,
         size: file.size,
@@ -51,11 +57,9 @@ export class ChatService {
 
       try {
         const uploadResult = await new Promise<any>((resolve, reject) => {
-          const stream = cloudinary.uploader.upload_stream(
+          const uploadStream = cloudinary.uploader.upload_stream(
             {
-              resource_type: file.mimetype.startsWith("image/")
-                ? "image"
-                : "video",
+              resource_type: isImageUpload ? "image" : "video",
               folder: "chat_media",
             },
             (error, result) => {
@@ -63,14 +67,12 @@ export class ChatService {
               else resolve(result);
             }
           );
-          const bufferStream = new Readable();
-          bufferStream.push(file.buffer);
-          bufferStream.push(null);
-          bufferStream.pipe(stream);
+
+          uploadStream.end(file.buffer);
         });
 
         console.log("Cloudinary upload result:", uploadResult);
-        type = file.mimetype.startsWith("image/") ? "IMAGE" : "VOICE";
+        type = isImageUpload ? "IMAGE" : "VOICE";
         url = uploadResult.secure_url;
       } catch (error) {
         console.error("Cloudinary upload failed:", error);

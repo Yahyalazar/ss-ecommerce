@@ -9,9 +9,18 @@ import { useMediaQuery } from "@/app/hooks/useMediaQuery";
 interface ChatLayoutProps {
   children: React.ReactNode;
   chatId: string;
+  chat?: any;
+  onResolve?: () => void;
+  canResolve?: boolean;
 }
 
-const ChatLayout: React.FC<ChatLayoutProps> = ({ children, chatId }) => {
+const ChatLayout: React.FC<ChatLayoutProps> = ({
+  children,
+  chatId,
+  chat,
+  onResolve,
+  canResolve = false,
+}) => {
   const isMobile = useMediaQuery("(max-width: 768px)");
   const [sidebarOpen, setSidebarOpen] = React.useState(!isMobile);
 
@@ -24,7 +33,7 @@ const ChatLayout: React.FC<ChatLayoutProps> = ({ children, chatId }) => {
   };
 
   return (
-    <div className="flex h-screen bg-gray-50">
+    <div className="flex h-full min-h-0 overflow-hidden bg-gray-50">
       {/* Sidebar */}
       <AnimatePresence>
         {sidebarOpen && (
@@ -34,7 +43,9 @@ const ChatLayout: React.FC<ChatLayoutProps> = ({ children, chatId }) => {
             exit={{ x: isMobile ? -320 : 0, opacity: 0 }}
             transition={{ duration: 0.3, ease: "easeInOut" }}
             className={`${
-              isMobile ? "fixed inset-y-0 left-0 z-50 w-80" : "relative w-80"
+              isMobile
+                ? "fixed inset-y-0 left-0 z-50 w-80 shrink-0"
+                : "relative w-80 shrink-0"
             } bg-white shadow-lg border-r border-gray-200`}
           >
             <ChatSidebar
@@ -47,11 +58,14 @@ const ChatLayout: React.FC<ChatLayoutProps> = ({ children, chatId }) => {
       </AnimatePresence>
 
       {/* Main Chat Area */}
-      <div className="flex-1 flex flex-col">
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
         <ChatMain
           onMenuClick={toggleSidebar}
           isMobile={isMobile}
           sidebarOpen={sidebarOpen}
+          chat={chat}
+          onResolve={onResolve}
+          canResolve={canResolve}
         >
           {children}
         </ChatMain>
