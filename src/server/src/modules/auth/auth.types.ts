@@ -5,6 +5,7 @@ export interface RegisterUserParams {
   email: string;
   password: string;
   role?: ROLE;
+  newsletterSubscribed?: boolean;
 }
 
 export interface SignInParams {
@@ -30,6 +31,8 @@ export interface AuthUser {
   role: ROLE;
   avatar: string | null;
   emailVerified: boolean;
+  newsletterSubscribed: boolean;
+  loyaltyPointsBalance: number;
 }
 
 export interface AuthResponse {

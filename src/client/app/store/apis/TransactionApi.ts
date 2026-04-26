@@ -4,14 +4,12 @@ export const transactionApi = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
     getAllTransactions: builder.query({
       query: () => "/transactions",
-      providesTags: ["Transactions"], // 👈 Tag for all transactions
+      providesTags: ["Transactions"],
     }),
     getTransaction: builder.query({
       query: (id) => `/transactions/${id}`,
-      providesTags: (result, error, id) => [{ type: "Transactions", id }], // 👈 Tag for single transaction
+      providesTags: (result, error, id) => [{ type: "Transactions", id }],
     }),
-
-
     updateTransactionStatus: builder.mutation({
       query: ({ id, status }: { id: string; status: string }) => ({
         url: `/transactions/status/${id}`,
@@ -19,19 +17,20 @@ export const transactionApi = apiSlice.injectEndpoints({
         body: { status },
       }),
       invalidatesTags: (result, error, { id }) => [
-        { type: "Transactions", id }, // 👈 Invalidate single
-        "Transactions", // 👈 Invalidate list if needed
+        { type: "Transactions", id },
+        "Transactions",
+        "Order",
+        "User",
       ],
     }),
-
     deleteTransaction: builder.mutation({
       query: (id) => ({
         url: `/transactions/${id}`,
         method: "DELETE",
       }),
       invalidatesTags: (result, error, id) => [
-        { type: "Transactions", id }, // 👈 Invalidate single
-        "Transactions", // 👈 Invalidate list
+        { type: "Transactions", id },
+        "Transactions",
       ],
     }),
   }),

@@ -43,6 +43,33 @@ export const userApi = apiSlice.injectEndpoints({
       }),
       providesTags: ["User"],
     }),
+    updateNewsletterPreference: builder.mutation<
+      GetMeResponse,
+      { newsletterSubscribed: boolean }
+    >({
+      query: (data) => ({
+        url: "/users/me/newsletter",
+        method: "PATCH",
+        body: data,
+      }),
+      invalidatesTags: ["User"],
+    }),
+    sendNewsletter: builder.mutation<
+      {
+        success: boolean;
+        message: string;
+        audienceCount: number;
+        sentCount: number;
+        failedCount: number;
+      },
+      { subject: string; message: string }
+    >({
+      query: (data) => ({
+        url: "/users/newsletter",
+        method: "POST",
+        body: data,
+      }),
+    }),
 
     createAdmin: builder.mutation({
       query: (data) => ({
@@ -72,4 +99,6 @@ export const {
   useGetMeQuery,
   useGetAllUsersQuery,
   useLazyGetMeQuery,
+  useSendNewsletterMutation,
+  useUpdateNewsletterPreferenceMutation,
 } = userApi;

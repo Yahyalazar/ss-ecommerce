@@ -1,5 +1,7 @@
 import AppError from "@/shared/errors/AppError";
 import { UserRepository } from "./user.repository";
+import sendEmail from "@/shared/utils/sendEmail";
+import newsletterTemplate from "@/shared/templates/newsletter";
 
 export class UserService {
   constructor(private userRepository: UserRepository) {}
@@ -38,6 +40,7 @@ export class UserService {
       name?: string;
       email?: string;
       avatar?: string;
+      newsletterSubscribed?: boolean;
     }>
   ) {
     const user = await this.userRepository.findUserById(id);
@@ -45,6 +48,65 @@ export class UserService {
       throw new AppError(404, "User not found");
     }
     return await this.userRepository.updateUser(id, data);
+  }
+
+  async updateNewsletterPreference(id: string, newsletterSubscribed: boolean) {
+    const user = await this.userRepository.findUserById(id);
+    if (!user) {
+      throw new AppError(404, "User not found");
+    }
+
+    return this.userRepository.updateNewsletterPreference(
+      id,
+      newsletterSubscribed
+    );
+  }
+
+  async sendNewsletter({
+    subject,
+    message,
+  }: {
+    subject: string;
+    message: string;
+  }) {
+    const subscribers = await this.userRepository.findSubscribedUsers();
+
+    if (subscribers.length === 0) {
+      throw new AppError(400, "There are no subscribed clients to email.");
+    }
+
+    const deliveries = await Promise.allSettled(
+      subscribers.map((subscriber) =>
+        sendEmail({
+          to: subscriber.email,
+          subject,
+          text: message,
+          html: newsletterTemplate({
+            name: subscriber.name,
+            subject,
+            message,
+          }),
+        })
+      )
+    );
+
+    const sentCount = deliveries.filter(
+      (result) => result.status === "fulfilled"
+    ).length;
+    const failedCount = deliveries.length - sentCount;
+
+    if (sentCount === 0) {
+      throw new AppError(
+        500,
+        "Newsletter delivery failed for all subscribed clients."
+      );
+    }
+
+    return {
+      audienceCount: subscribers.length,
+      sentCount,
+      failedCount,
+    };
   }
 
   async deleteUser(id: string, currentUserId: string) {

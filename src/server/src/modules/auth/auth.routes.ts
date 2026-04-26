@@ -21,6 +21,13 @@ const cartService = new CartService(new CartRepository());
 const CLIENT_URL_DEV = process.env.CLIENT_URL_DEV;
 const CLIENT_URL_PROD = process.env.CLIENT_URL_PROD;
 const env = process.env.NODE_ENV;
+const clientBaseUrl =
+  (env === "production" ? CLIENT_URL_PROD : CLIENT_URL_DEV) ||
+  "http://localhost:3000";
+const buildClientRedirectUrl = (path = "") =>
+  `${clientBaseUrl.replace(/\/+$/, "")}${path}`;
+const buildFailureRedirectUrl = (provider: string) =>
+  `${buildClientRedirectUrl("/sign-in")}?error=social_auth_failed&provider=${provider}`;
 
 /**
  * @swagger
@@ -37,7 +44,7 @@ router.get(
   "/google/callback",
   passport.authenticate("google", {
     session: false,
-    failureRedirect: env === "production" ? CLIENT_URL_PROD : CLIENT_URL_DEV,
+    failureRedirect: buildFailureRedirectUrl("google"),
   }),
   async (req: any, res: any) => {
     const user = req.user;
@@ -50,7 +57,7 @@ router.get(
     const sessionId = req.session.id;
     await cartService?.mergeCartsOnLogin(sessionId, userId);
 
-    res.redirect(env === "production" ? CLIENT_URL_PROD : CLIENT_URL_DEV);
+    res.redirect(buildClientRedirectUrl());
   }
 );
 /**
@@ -79,7 +86,7 @@ router.get(
   "/facebook/callback",
   passport.authenticate("facebook", {
     session: false,
-    failureRedirect: env === "production" ? CLIENT_URL_PROD : CLIENT_URL_DEV,
+    failureRedirect: buildFailureRedirectUrl("facebook"),
   }),
   async (req: any, res: any) => {
     const user = req.user;
@@ -92,7 +99,7 @@ router.get(
     const sessionId = req.session.id;
     await cartService?.mergeCartsOnLogin(sessionId, userId);
 
-    res.redirect(env === "production" ? CLIENT_URL_PROD : CLIENT_URL_DEV);
+    res.redirect(buildClientRedirectUrl());
   }
 );
 /**
@@ -127,15 +134,11 @@ router.get(
   "/twitter/callback",
   passport.authenticate("twitter", {
     session: false,
-    failureRedirect: `${
-      env === "production" ? CLIENT_URL_PROD : CLIENT_URL_DEV
-    }?error=auth_failed`,
+    failureRedirect: buildFailureRedirectUrl("twitter"),
   }),
   async (req: any, res: any) => {
     const user = req.user;
     const { accessToken, refreshToken } = user;
-
-    console.log("Twitter callback user:", user);
 
     res.cookie("refreshToken", refreshToken, cookieOptions);
     res.cookie("accessToken", accessToken, cookieOptions);
@@ -144,7 +147,7 @@ router.get(
     const sessionId = req.session.id;
     await cartService?.mergeCartsOnLogin(sessionId, userId);
 
-    res.redirect(env === "production" ? CLIENT_URL_PROD : CLIENT_URL_DEV);
+    res.redirect(buildClientRedirectUrl());
   }
 );
 /**

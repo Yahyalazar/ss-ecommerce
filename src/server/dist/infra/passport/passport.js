@@ -19,27 +19,69 @@ const passport_facebook_1 = require("passport-facebook");
 const passport_twitter_1 = require("passport-twitter");
 const database_config_1 = __importDefault(require("@/infra/database/database.config"));
 const tokenUtils_1 = require("@/shared/utils/auth/tokenUtils");
+const trimEnv = (value) => value === null || value === void 0 ? void 0 : value.trim();
+const resolveServerOrigin = () => {
+    const configuredOrigin = trimEnv(process.env.SERVER_PUBLIC_URL) ||
+        trimEnv(process.env.API_PUBLIC_URL) ||
+        `http://localhost:${trimEnv(process.env.PORT) || "5000"}`;
+    return configuredOrigin.replace(/\/+$/, "").replace(/\/api\/v1$/, "");
+};
+const getExpectedCallbackPath = (provider) => `/api/v1/auth/${provider}/callback`;
+const resolveCallbackUrl = (provider, configuredUrl) => {
+    const expectedPath = getExpectedCallbackPath(provider);
+    const rawValue = trimEnv(configuredUrl);
+    if (!rawValue) {
+        return `${resolveServerOrigin()}${expectedPath}`;
+    }
+    try {
+        const url = new URL(rawValue);
+        if (url.pathname === `/auth/${provider}/callback`) {
+            url.pathname = expectedPath;
+        }
+        return url.toString();
+    }
+    catch (_a) {
+        const normalizedPath = rawValue.startsWith("/") ? rawValue : `/${rawValue}`;
+        if (normalizedPath === expectedPath ||
+            normalizedPath === `/auth/${provider}/callback`) {
+            return `${resolveServerOrigin()}${expectedPath}`;
+        }
+        return rawValue;
+    }
+};
+const warnIfPlaceholderCredentials = (provider, clientId, clientSecret) => {
+    if (!clientId ||
+        !clientSecret ||
+        /dummy/i.test(clientId) ||
+        /dummy/i.test(clientSecret)) {
+        console.warn(`[AUTH] ${provider} OAuth credentials look like placeholders. Update the ${provider.toUpperCase()} app credentials in src/server/.env.`);
+    }
+};
 function configurePassport() {
-    // Google Strategy (unchanged)
+    warnIfPlaceholderCredentials("google", process.env.GOOGLE_CLIENT_ID, process.env.GOOGLE_CLIENT_SECRET);
     passport_1.default.use(new passport_google_oauth20_1.Strategy({
         clientID: process.env.GOOGLE_CLIENT_ID,
         clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-        callbackURL: process.env.NODE_ENV === "production"
+        callbackURL: resolveCallbackUrl("google", process.env.NODE_ENV === "production"
             ? process.env.GOOGLE_CALLBACK_URL_PROD
-            : process.env.GOOGLE_CALLBACK_URL_DEV,
+            : process.env.GOOGLE_CALLBACK_URL_DEV),
     }, (accessToken, refreshToken, profile, done) => __awaiter(this, void 0, void 0, function* () {
-        var _a, _b;
+        var _a, _b, _c, _d, _e;
         try {
+            const email = (_c = (_b = (_a = profile.emails) === null || _a === void 0 ? void 0 : _a[0]) === null || _b === void 0 ? void 0 : _b.value) === null || _c === void 0 ? void 0 : _c.trim().toLowerCase();
+            if (!email) {
+                return done(new Error("Google did not return an email address for this account."));
+            }
             let user = yield database_config_1.default.user.findUnique({
-                where: { email: profile.emails[0].value },
+                where: { email },
             });
             if (user) {
                 if (!user.googleId) {
                     user = yield database_config_1.default.user.update({
-                        where: { email: profile.emails[0].value },
+                        where: { email },
                         data: {
                             googleId: profile.id,
-                            avatar: ((_a = profile.photos[0]) === null || _a === void 0 ? void 0 : _a.value) || "",
+                            avatar: ((_d = profile.photos[0]) === null || _d === void 0 ? void 0 : _d.value) || "",
                             emailVerified: true,
                         },
                     });
@@ -48,10 +90,10 @@ function configurePassport() {
             else {
                 user = yield database_config_1.default.user.create({
                     data: {
-                        email: profile.emails[0].value,
+                        email,
                         name: profile.displayName,
                         googleId: profile.id,
-                        avatar: ((_b = profile.photos[0]) === null || _b === void 0 ? void 0 : _b.value) || "",
+                        avatar: ((_e = profile.photos[0]) === null || _e === void 0 ? void 0 : _e.value) || "",
                         emailVerified: true,
                     },
                 });
@@ -66,28 +108,31 @@ function configurePassport() {
             return done(error);
         }
     })));
-    // Facebook Strategy (unchanged, assuming it works)
+    warnIfPlaceholderCredentials("facebook", process.env.FACEBOOK_APP_ID, process.env.FACEBOOK_APP_SECRET);
     passport_1.default.use(new passport_facebook_1.Strategy({
         clientID: process.env.FACEBOOK_APP_ID,
         clientSecret: process.env.FACEBOOK_APP_SECRET,
-        callbackURL: process.env.NODE_ENV === "production"
+        callbackURL: resolveCallbackUrl("facebook", process.env.NODE_ENV === "production"
             ? process.env.FACEBOOK_CALLBACK_URL_PROD
-            : process.env.FACEBOOK_CALLBACK_URL_DEV,
-        profileFields: ["id", "emails", "name"],
+            : process.env.FACEBOOK_CALLBACK_URL_DEV),
+        profileFields: ["id", "emails", "name", "picture.type(large)"],
     }, (accessToken, refreshToken, profile, done) => __awaiter(this, void 0, void 0, function* () {
-        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m;
-        console.log("facebook profile: ", profile);
+        var _a, _b, _c, _d, _e, _f, _g, _h, _j;
         try {
+            const email = (_c = (_b = (_a = profile.emails) === null || _a === void 0 ? void 0 : _a[0]) === null || _b === void 0 ? void 0 : _b.value) === null || _c === void 0 ? void 0 : _c.trim().toLowerCase();
+            if (!email) {
+                return done(new Error("Facebook did not return an email address for this account."));
+            }
             let user = yield database_config_1.default.user.findUnique({
-                where: { email: ((_b = (_a = profile.emails) === null || _a === void 0 ? void 0 : _a[0]) === null || _b === void 0 ? void 0 : _b.value) || "" },
+                where: { email },
             });
             if (user) {
                 if (!user.facebookId) {
                     user = yield database_config_1.default.user.update({
-                        where: { email: ((_d = (_c = profile.emails) === null || _c === void 0 ? void 0 : _c[0]) === null || _d === void 0 ? void 0 : _d.value) || "" },
+                        where: { email },
                         data: {
                             facebookId: profile.id,
-                            avatar: ((_f = (_e = profile.photos) === null || _e === void 0 ? void 0 : _e[0]) === null || _f === void 0 ? void 0 : _f.value) || "",
+                            avatar: ((_e = (_d = profile.photos) === null || _d === void 0 ? void 0 : _d[0]) === null || _e === void 0 ? void 0 : _e.value) || "",
                             emailVerified: true,
                         },
                     });
@@ -96,10 +141,10 @@ function configurePassport() {
             else {
                 user = yield database_config_1.default.user.create({
                     data: {
-                        email: ((_h = (_g = profile.emails) === null || _g === void 0 ? void 0 : _g[0]) === null || _h === void 0 ? void 0 : _h.value) || "",
-                        name: `${(_j = profile.name) === null || _j === void 0 ? void 0 : _j.givenName} ${(_k = profile.name) === null || _k === void 0 ? void 0 : _k.familyName}`,
+                        email,
+                        name: `${(_f = profile.name) === null || _f === void 0 ? void 0 : _f.givenName} ${(_g = profile.name) === null || _g === void 0 ? void 0 : _g.familyName}`,
                         facebookId: profile.id,
-                        avatar: ((_m = (_l = profile.photos) === null || _l === void 0 ? void 0 : _l[0]) === null || _m === void 0 ? void 0 : _m.value) || "",
+                        avatar: ((_j = (_h = profile.photos) === null || _h === void 0 ? void 0 : _h[0]) === null || _j === void 0 ? void 0 : _j.value) || "",
                         emailVerified: true,
                     },
                 });
@@ -114,19 +159,16 @@ function configurePassport() {
             return done(error);
         }
     })));
-    // Twitter Strategy (standalone, without oauthUtils)
+    warnIfPlaceholderCredentials("twitter", process.env.TWITTER_CONSUMER_KEY, process.env.TWITTER_CONSUMER_SECRET);
     passport_1.default.use(new passport_twitter_1.Strategy({
         consumerKey: process.env.TWITTER_CONSUMER_KEY,
         consumerSecret: process.env.TWITTER_CONSUMER_SECRET,
-        callbackURL: process.env.NODE_ENV === "production"
+        callbackURL: resolveCallbackUrl("twitter", process.env.NODE_ENV === "production"
             ? process.env.TWITTER_CALLBACK_URL_PROD
-            : process.env.TWITTER_CALLBACK_URL_DEV,
+            : process.env.TWITTER_CALLBACK_URL_DEV),
         includeEmail: true,
     }, (accessToken, refreshToken, profile, done) => __awaiter(this, void 0, void 0, function* () {
         var _a, _b, _c, _d, _e, _f;
-        console.log("Twitter accessToken:", accessToken);
-        console.log("Twitter refreshToken:", refreshToken);
-        console.log("Twitter profile:", JSON.stringify(profile, null, 2));
         try {
             if (!profile || !profile.id) {
                 console.error("Twitter profile is missing or invalid:", profile);

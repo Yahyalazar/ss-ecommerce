@@ -39,12 +39,13 @@ class AuthController {
         this.logsService = (0, logs_factory_1.makeLogsService)();
         this.signup = (0, asyncHandler_1.default)((req, res) => __awaiter(this, void 0, void 0, function* () {
             const start = Date.now();
-            const { name, email, password, role } = req.body;
+            const { name, email, password, role, newsletterSubscribed } = req.body;
             const response = yield this.authService.registerUser({
                 name,
                 email,
                 password,
                 role,
+                newsletterSubscribed,
             });
             (0, sendResponse_1.default)(res, 201, {
                 message: response.message,
@@ -83,6 +84,8 @@ class AuthController {
                         role: user.role,
                         avatar: user.avatar || null,
                         emailVerified: user.emailVerified,
+                        newsletterSubscribed: user.newsletterSubscribed,
+                        loyaltyPointsBalance: user.loyaltyPointsBalance,
                     },
                 },
             });
@@ -133,6 +136,8 @@ class AuthController {
                         role: user.role,
                         avatar: user.avatar,
                         emailVerified: user.emailVerified,
+                        newsletterSubscribed: user.newsletterSubscribed,
+                        loyaltyPointsBalance: user.loyaltyPointsBalance,
                     },
                 },
                 message: "User logged in successfully",

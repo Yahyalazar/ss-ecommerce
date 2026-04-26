@@ -37,6 +37,11 @@ __decorate([
     (0, class_validator_1.IsIn)(["USER", "ADMIN", "SUPERADMIN"]),
     __metadata("design:type", String)
 ], RegisterDto.prototype, "role", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsBoolean)(),
+    __metadata("design:type", Boolean)
+], RegisterDto.prototype, "newsletterSubscribed", void 0);
 class SigninDto {
 }
 exports.SigninDto = SigninDto;

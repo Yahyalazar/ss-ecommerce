@@ -24,3 +24,6 @@ export const API_ORIGIN = normalizeApiBaseUrl(resolveApiOrigin());
 export const API_BASE_URL = `${API_ORIGIN}/api/v1`;
 export const AUTH_API_BASE_URL = API_BASE_URL;
 export const GRAPHQL_URL = `${API_BASE_URL}/graphql`;
+
+export const buildOAuthUrl = (provider: string) =>
+  `${AUTH_API_BASE_URL}/auth/${provider}`;

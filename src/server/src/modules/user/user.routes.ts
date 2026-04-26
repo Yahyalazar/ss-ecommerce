@@ -4,8 +4,14 @@ import protect from "@/shared/middlewares/protect";
 import authorizeRole from "@/shared/middlewares/authorizeRole";
 import authorizeRoleHierarchy from "@/shared/middlewares/authorizeRoleHierarchy";
 import { validateDto } from "@/shared/middlewares/validateDto";
-import { UpdateUserDto, UserEmailDto, UserIdDto } from "./user.dto";
-import { CreateAdminDto } from "./user.dto";
+import {
+  CreateAdminDto,
+  SendNewsletterDto,
+  UpdateNewsletterPreferenceDto,
+  UpdateUserDto,
+  UserEmailDto,
+  UserIdDto,
+} from "./user.dto";
 
 const router = Router();
 const userController = makeUserController();
@@ -25,6 +31,13 @@ const userController = makeUserController();
  *         description: Unauthorized. Token is invalid or missing.
  */
 router.get("/me", protect, userController.getMe);
+
+router.patch(
+  "/me/newsletter",
+  protect,
+  validateDto(UpdateNewsletterPreferenceDto),
+  userController.updateNewsletterPreference
+);
 
 /**
  * @swagger
@@ -68,6 +81,14 @@ router.post(
   userController.createAdmin
 );
 
+router.post(
+  "/newsletter",
+  protect,
+  authorizeRole("ADMIN", "SUPERADMIN"),
+  validateDto(SendNewsletterDto),
+  userController.sendNewsletter
+);
+
 /**
  * @swagger
  * /users:
@@ -84,7 +105,12 @@ router.post(
  *       403:
  *         description: Forbidden. User does not have the required role.
  */
-router.get("/", userController.getAllUsers);
+router.get(
+  "/",
+  protect,
+  authorizeRole("ADMIN", "SUPERADMIN"),
+  userController.getAllUsers
+);
 
 /**
  * @swagger

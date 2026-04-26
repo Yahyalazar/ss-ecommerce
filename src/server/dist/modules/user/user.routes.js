@@ -10,7 +10,6 @@ const authorizeRole_1 = __importDefault(require("@/shared/middlewares/authorizeR
 const authorizeRoleHierarchy_1 = __importDefault(require("@/shared/middlewares/authorizeRoleHierarchy"));
 const validateDto_1 = require("@/shared/middlewares/validateDto");
 const user_dto_1 = require("./user.dto");
-const user_dto_2 = require("./user.dto");
 const router = (0, express_1.Router)();
 const userController = (0, user_factory_1.makeUserController)();
 /**
@@ -28,6 +27,7 @@ const userController = (0, user_factory_1.makeUserController)();
  *         description: Unauthorized. Token is invalid or missing.
  */
 router.get("/me", protect_1.default, userController.getMe);
+router.patch("/me/newsletter", protect_1.default, (0, validateDto_1.validateDto)(user_dto_1.UpdateNewsletterPreferenceDto), userController.updateNewsletterPreference);
 /**
  * @swagger
  * /users/admin:
@@ -62,7 +62,8 @@ router.get("/me", protect_1.default, userController.getMe);
  *       403:
  *         description: Forbidden. User does not have the required role.
  */
-router.post("/admin", protect_1.default, (0, authorizeRole_1.default)("SUPERADMIN"), (0, validateDto_1.validateDto)(user_dto_2.CreateAdminDto), userController.createAdmin);
+router.post("/admin", protect_1.default, (0, authorizeRole_1.default)("SUPERADMIN"), (0, validateDto_1.validateDto)(user_dto_1.CreateAdminDto), userController.createAdmin);
+router.post("/newsletter", protect_1.default, (0, authorizeRole_1.default)("ADMIN", "SUPERADMIN"), (0, validateDto_1.validateDto)(user_dto_1.SendNewsletterDto), userController.sendNewsletter);
 /**
  * @swagger
  * /users:
@@ -79,7 +80,7 @@ router.post("/admin", protect_1.default, (0, authorizeRole_1.default)("SUPERADMI
  *       403:
  *         description: Forbidden. User does not have the required role.
  */
-router.get("/", userController.getAllUsers);
+router.get("/", protect_1.default, (0, authorizeRole_1.default)("ADMIN", "SUPERADMIN"), userController.getAllUsers);
 /**
  * @swagger
  * /users/{id}:

@@ -20,12 +20,13 @@ export class AuthController {
 
   signup = asyncHandler(async (req: Request, res: Response): Promise<void> => {
     const start = Date.now();
-    const { name, email, password, role } = req.body;
+    const { name, email, password, role, newsletterSubscribed } = req.body;
     const response = await this.authService.registerUser({
       name,
       email,
       password,
       role,
+      newsletterSubscribed,
     });
 
     sendResponse(res, 201, {
@@ -71,6 +72,8 @@ export class AuthController {
             role: user.role,
             avatar: user.avatar || null,
             emailVerified: user.emailVerified,
+            newsletterSubscribed: user.newsletterSubscribed,
+            loyaltyPointsBalance: user.loyaltyPointsBalance,
           },
         },
       });
@@ -131,6 +134,8 @@ export class AuthController {
           role: user.role,
           avatar: user.avatar,
           emailVerified: user.emailVerified,
+          newsletterSubscribed: user.newsletterSubscribed,
+          loyaltyPointsBalance: user.loyaltyPointsBalance,
         },
       },
       message: "User logged in successfully",

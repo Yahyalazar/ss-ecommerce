@@ -79,6 +79,7 @@ export class AuthService {
     email,
     password,
     role,
+    newsletterSubscribed,
   }: RegisterUserParams): Promise<VerificationPendingResponse> {
     const normalizedEmail = this.normalizeEmail(email);
     const existingUser = await this.authRepository.findUserByEmail(
@@ -106,6 +107,7 @@ export class AuthService {
         emailVerificationToken: verificationToken.hashedToken,
         emailVerificationTokenExpiresAt: verificationToken.expiresAt,
         emailVerified: false,
+        newsletterSubscribed,
       });
 
       await this.sendVerificationEmail(normalizedEmail, verificationToken.code);
@@ -127,6 +129,7 @@ export class AuthService {
       password,
       role: ROLE.USER, // Ignore any role passed from client for security
       emailVerified: false,
+      newsletterSubscribed,
       emailVerificationToken: verificationToken.hashedToken,
       emailVerificationTokenExpiresAt: verificationToken.expiresAt,
     });
@@ -225,6 +228,8 @@ export class AuthService {
         role: user.role,
         avatar: user.avatar,
         emailVerified: true,
+        newsletterSubscribed: user.newsletterSubscribed,
+        loyaltyPointsBalance: user.loyaltyPointsBalance,
       },
       accessToken,
       refreshToken,
@@ -340,6 +345,8 @@ export class AuthService {
       email: string;
       role: string;
       avatar: string | null;
+      newsletterSubscribed: boolean;
+      loyaltyPointsBalance: number;
     };
     newAccessToken: string;
     newRefreshToken: string;
@@ -360,7 +367,6 @@ export class AuthService {
     }
 
     const user = await this.authRepository.findUserById(decoded.id);
-    console.log("refreshed user: ", user);
 
     if (!user) {
       throw new NotFoundError("User");

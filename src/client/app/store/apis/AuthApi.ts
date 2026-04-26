@@ -8,6 +8,8 @@ interface User {
   role: string;
   emailVerified: boolean;
   avatar: string | null;
+  newsletterSubscribed: boolean;
+  loyaltyPointsBalance: number;
 }
 
 export const authApi = apiSlice.injectEndpoints({
@@ -36,7 +38,12 @@ export const authApi = apiSlice.injectEndpoints({
         email: string;
         requiresEmailVerification: boolean;
       },
-      { name: string; email: string; password: string }
+      {
+        name: string;
+        email: string;
+        password: string;
+        newsletterSubscribed?: boolean;
+      }
     >({
       query: (data) => ({
         url: "/auth/sign-up",

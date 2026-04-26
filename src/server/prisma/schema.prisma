@@ -54,6 +54,8 @@ model User {
   name                        String
   avatar                      String?
   emailVerified               Boolean       @default(false)
+  newsletterSubscribed        Boolean       @default(false)
+  loyaltyPointsBalance        Int           @default(0)
   emailVerificationToken      String?
   emailVerificationTokenExpiresAt DateTime?
   resetPasswordToken          String?
@@ -234,6 +236,7 @@ model Order {
   amount      Float
   orderDate   DateTime     @default(now())
   status      String       @default("PENDING")
+  loyaltyPointsAwarded Int @default(0)
   user        User         @relation(fields: [userId], references: [id])
   orderItems  OrderItem[]
   payment     Payment?     @relation("OrderPayment")

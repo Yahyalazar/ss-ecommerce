@@ -7,6 +7,8 @@ interface User {
   role: string;
   emailVerified: boolean;
   avatar: string | null;
+  newsletterSubscribed: boolean;
+  loyaltyPointsBalance: number;
 }
 
 interface AuthState {

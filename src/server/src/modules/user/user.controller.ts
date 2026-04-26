@@ -43,9 +43,7 @@ export class UserController {
 
   getMe = asyncHandler(async (req: Request, res: Response): Promise<void> => {
     const id = req.user?.id;
-    console.log("id: ", id);
     const user = await this.userService.getMe(id);
-    console.log("user: ", user);
     sendResponse(res, 200, {
       data: { user },
       message: "User fetched successfully",
@@ -68,6 +66,41 @@ export class UserController {
         userId: req.user?.id,
         sessionId: req.session.id,
         timePeriod: end - start,
+      });
+    }
+  );
+
+  updateNewsletterPreference = asyncHandler(
+    async (req: Request, res: Response): Promise<void> => {
+      const currentUserId = req.user?.id;
+
+      if (!currentUserId) {
+        throw new AppError(401, "User not authenticated");
+      }
+
+      const { newsletterSubscribed } = req.body;
+      const user = await this.userService.updateNewsletterPreference(
+        currentUserId,
+        newsletterSubscribed
+      );
+
+      sendResponse(res, 200, {
+        data: { user },
+        message: newsletterSubscribed
+          ? "Newsletter subscription enabled"
+          : "Newsletter subscription disabled",
+      });
+    }
+  );
+
+  sendNewsletter = asyncHandler(
+    async (req: Request, res: Response): Promise<void> => {
+      const { subject, message } = req.body;
+      const result = await this.userService.sendNewsletter({ subject, message });
+
+      sendResponse(res, 200, {
+        data: result,
+        message: `Newsletter sent to ${result.sentCount} subscribed client${result.sentCount === 1 ? "" : "s"}.`,
       });
     }
   );

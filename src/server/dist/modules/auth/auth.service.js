@@ -69,7 +69,7 @@ class AuthService {
         });
     }
     registerUser(_a) {
-        return __awaiter(this, arguments, void 0, function* ({ name, email, password, role, }) {
+        return __awaiter(this, arguments, void 0, function* ({ name, email, password, role, newsletterSubscribed, }) {
             const normalizedEmail = this.normalizeEmail(email);
             const existingUser = yield this.authRepository.findUserByEmail(normalizedEmail);
             if (existingUser) {
@@ -84,6 +84,7 @@ class AuthService {
                     emailVerificationToken: verificationToken.hashedToken,
                     emailVerificationTokenExpiresAt: verificationToken.expiresAt,
                     emailVerified: false,
+                    newsletterSubscribed,
                 });
                 yield this.sendVerificationEmail(normalizedEmail, verificationToken.code);
                 return {
@@ -100,6 +101,7 @@ class AuthService {
                 password,
                 role: client_1.ROLE.USER, // Ignore any role passed from client for security
                 emailVerified: false,
+                newsletterSubscribed,
                 emailVerificationToken: verificationToken.hashedToken,
                 emailVerificationTokenExpiresAt: verificationToken.expiresAt,
             });
@@ -168,6 +170,8 @@ class AuthService {
                     role: user.role,
                     avatar: user.avatar,
                     emailVerified: true,
+                    newsletterSubscribed: user.newsletterSubscribed,
+                    loyaltyPointsBalance: user.loyaltyPointsBalance,
                 },
                 accessToken,
                 refreshToken,
@@ -264,7 +268,6 @@ class AuthService {
                 throw new AppError_1.default(401, "Session expired. Please log in again.");
             }
             const user = yield this.authRepository.findUserById(decoded.id);
-            console.log("refreshed user: ", user);
             if (!user) {
                 throw new NotFoundError_1.default("User");
             }

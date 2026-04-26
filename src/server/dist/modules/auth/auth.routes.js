@@ -27,6 +27,10 @@ const cartService = new cart_service_1.CartService(new cart_repository_1.CartRep
 const CLIENT_URL_DEV = process.env.CLIENT_URL_DEV;
 const CLIENT_URL_PROD = process.env.CLIENT_URL_PROD;
 const env = process.env.NODE_ENV;
+const clientBaseUrl = (env === "production" ? CLIENT_URL_PROD : CLIENT_URL_DEV) ||
+    "http://localhost:3000";
+const buildClientRedirectUrl = (path = "") => `${clientBaseUrl.replace(/\/+$/, "")}${path}`;
+const buildFailureRedirectUrl = (provider) => `${buildClientRedirectUrl("/sign-in")}?error=social_auth_failed&provider=${provider}`;
 /**
  * @swagger
  * /google:
@@ -40,7 +44,7 @@ const env = process.env.NODE_ENV;
 router.get("/google", (0, handleSocialLogin_1.default)("google"));
 router.get("/google/callback", passport_1.default.authenticate("google", {
     session: false,
-    failureRedirect: env === "production" ? CLIENT_URL_PROD : CLIENT_URL_DEV,
+    failureRedirect: buildFailureRedirectUrl("google"),
 }), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const user = req.user;
     const { accessToken, refreshToken } = user;
@@ -49,7 +53,7 @@ router.get("/google/callback", passport_1.default.authenticate("google", {
     const userId = user.id;
     const sessionId = req.session.id;
     yield (cartService === null || cartService === void 0 ? void 0 : cartService.mergeCartsOnLogin(sessionId, userId));
-    res.redirect(env === "production" ? CLIENT_URL_PROD : CLIENT_URL_DEV);
+    res.redirect(buildClientRedirectUrl());
 }));
 /**
  * @swagger
@@ -74,7 +78,7 @@ router.get("/google/callback", passport_1.default.authenticate("google", {
 router.get("/facebook", (0, handleSocialLogin_1.default)("facebook"));
 router.get("/facebook/callback", passport_1.default.authenticate("facebook", {
     session: false,
-    failureRedirect: env === "production" ? CLIENT_URL_PROD : CLIENT_URL_DEV,
+    failureRedirect: buildFailureRedirectUrl("facebook"),
 }), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const user = req.user;
     const { accessToken, refreshToken } = user;
@@ -83,7 +87,7 @@ router.get("/facebook/callback", passport_1.default.authenticate("facebook", {
     const userId = user.id;
     const sessionId = req.session.id;
     yield (cartService === null || cartService === void 0 ? void 0 : cartService.mergeCartsOnLogin(sessionId, userId));
-    res.redirect(env === "production" ? CLIENT_URL_PROD : CLIENT_URL_DEV);
+    res.redirect(buildClientRedirectUrl());
 }));
 /**
  * @swagger
@@ -111,17 +115,16 @@ router.get("/twitter", passport_1.default.authenticate("twitter", {
 }));
 router.get("/twitter/callback", passport_1.default.authenticate("twitter", {
     session: false,
-    failureRedirect: `${env === "production" ? CLIENT_URL_PROD : CLIENT_URL_DEV}?error=auth_failed`,
+    failureRedirect: buildFailureRedirectUrl("twitter"),
 }), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const user = req.user;
     const { accessToken, refreshToken } = user;
-    console.log("Twitter callback user:", user);
     res.cookie("refreshToken", refreshToken, constants_1.cookieOptions);
     res.cookie("accessToken", accessToken, constants_1.cookieOptions);
     const userId = user.id;
     const sessionId = req.session.id;
     yield (cartService === null || cartService === void 0 ? void 0 : cartService.mergeCartsOnLogin(sessionId, userId));
-    res.redirect(env === "production" ? CLIENT_URL_PROD : CLIENT_URL_DEV);
+    res.redirect(buildClientRedirectUrl());
 }));
 /**
  * @swagger

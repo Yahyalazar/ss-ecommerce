@@ -1,7 +1,11 @@
 "use client";
 import { withAuth } from "@/app/components/HOC/WithAuth";
 import MainLayout from "@/app/components/templates/MainLayout";
-import { useGetMeQuery } from "@/app/store/apis/UserApi";
+import {
+  useGetMeQuery,
+  useUpdateNewsletterPreferenceMutation,
+} from "@/app/store/apis/UserApi";
+import useToast from "@/app/hooks/ui/useToast";
 import {
   User,
   Shield,
@@ -13,6 +17,8 @@ import {
   AlertCircle,
   Settings,
   LogOut,
+  Gift,
+  Loader2,
 } from "lucide-react";
 import Image from "next/image";
 import { motion } from "framer-motion";
@@ -20,9 +26,10 @@ import { useState } from "react";
 
 const UserProfile = () => {
   const { data, isLoading, error } = useGetMeQuery(undefined);
+  const [updateNewsletterPreference, { isLoading: isSavingNewsletter }] =
+    useUpdateNewsletterPreferenceMutation();
   const [isEditing, setIsEditing] = useState(false);
-
-  console.log("user => ", data);
+  const { showToast } = useToast();
 
   if (isLoading) {
     return (
@@ -111,6 +118,36 @@ const UserProfile = () => {
       SUPERADMIN: "bg-red-100 text-red-800 border-red-200",
     };
     return colors[role as keyof typeof colors] || colors.USER;
+  };
+
+  const formatDate = (value?: string) => {
+    if (!value) return "Recently";
+
+    return new Date(value).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
+  };
+
+  const handleNewsletterToggle = async () => {
+    try {
+      await updateNewsletterPreference({
+        newsletterSubscribed: !user.newsletterSubscribed,
+      }).unwrap();
+
+      showToast(
+        !user.newsletterSubscribed
+          ? "Newsletter subscription enabled"
+          : "Newsletter subscription disabled",
+        "success"
+      );
+    } catch (updateError: any) {
+      showToast(
+        updateError?.data?.message || "Failed to update newsletter preference",
+        "error"
+      );
+    }
   };
 
   return (
@@ -254,10 +291,21 @@ const UserProfile = () => {
                       </p>
                     </div>
                     <div className="flex items-center space-x-2">
-                      <CheckCircle className="w-4 h-4 text-green-500" />
-                      <span className="text-xs text-green-600 font-medium">
-                        Email verified
-                      </span>
+                      {user.emailVerified ? (
+                        <>
+                          <CheckCircle className="w-4 h-4 text-green-500" />
+                          <span className="text-xs text-green-600 font-medium">
+                            Email verified
+                          </span>
+                        </>
+                      ) : (
+                        <>
+                          <AlertCircle className="w-4 h-4 text-amber-500" />
+                          <span className="text-xs text-amber-600 font-medium">
+                            Email not verified
+                          </span>
+                        </>
+                      )}
                     </div>
                   </div>
                 </motion.div>
@@ -300,11 +348,44 @@ const UserProfile = () => {
                   </div>
                 </motion.div>
 
-                {/* Account Info Card */}
+                {/* Loyalty Card */}
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.4 }}
+                  className="bg-gradient-to-br from-amber-50 to-yellow-50 rounded-xl p-4 sm:p-6 border border-amber-200/50"
+                >
+                  <div className="flex items-center space-x-3 mb-4">
+                    <div className="w-10 h-10 bg-amber-100 rounded-lg flex items-center justify-center">
+                      <Gift className="w-5 h-5 text-amber-600" />
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wide">
+                        Loyalty Points
+                      </h3>
+                    </div>
+                  </div>
+
+                  <div className="space-y-3">
+                    <div>
+                      <p className="text-xs text-gray-500 mb-1">
+                        Current Balance
+                      </p>
+                      <p className="text-3xl font-bold text-amber-700">
+                        {user.loyaltyPointsBalance}
+                      </p>
+                    </div>
+                    <p className="text-xs text-amber-700">
+                      Points are added when your delivered orders are completed.
+                    </p>
+                  </div>
+                </motion.div>
+
+                {/* Account Info Card */}
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.5 }}
                   className="bg-gradient-to-br from-orange-50 to-amber-50 rounded-xl p-4 sm:p-6 border border-orange-200/50 sm:col-span-2 lg:col-span-1"
                 >
                   <div className="flex items-center space-x-3 mb-4">
@@ -321,12 +402,64 @@ const UserProfile = () => {
                   <div className="space-y-3">
                     <div>
                       <p className="text-xs text-gray-500 mb-1">Member Since</p>
-                      <p className="text-gray-800 font-medium">Recently</p>
+                      <p className="text-gray-800 font-medium">
+                        {formatDate(user.createdAt)}
+                      </p>
                     </div>
                     <div>
                       <p className="text-xs text-gray-500 mb-1">Last Updated</p>
-                      <p className="text-gray-800 font-medium">Recently</p>
+                      <p className="text-gray-800 font-medium">
+                        {formatDate(user.updatedAt)}
+                      </p>
                     </div>
+                  </div>
+                </motion.div>
+
+                {/* Newsletter Card */}
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.6 }}
+                  className="bg-gradient-to-br from-cyan-50 to-sky-50 rounded-xl p-4 sm:p-6 border border-cyan-200/50 sm:col-span-2 lg:col-span-2"
+                >
+                  <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                      <div className="flex items-center space-x-3 mb-3">
+                        <div className="w-10 h-10 bg-cyan-100 rounded-lg flex items-center justify-center">
+                          <Mail className="w-5 h-5 text-cyan-600" />
+                        </div>
+                        <div>
+                          <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wide">
+                            Email News
+                          </h3>
+                        </div>
+                      </div>
+
+                      <p className="text-sm text-gray-700">
+                        {user.newsletterSubscribed
+                          ? "You are subscribed to product news, offers, and loyalty updates."
+                          : "Subscribe to receive product news, offers, and loyalty updates by email."}
+                      </p>
+                    </div>
+
+                    <button
+                      onClick={handleNewsletterToggle}
+                      disabled={isSavingNewsletter}
+                      className={`inline-flex items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-medium transition-colors ${
+                        user.newsletterSubscribed
+                          ? "bg-slate-900 text-white hover:bg-slate-800"
+                          : "bg-cyan-600 text-white hover:bg-cyan-700"
+                      } ${isSavingNewsletter ? "cursor-not-allowed opacity-70" : ""}`}
+                    >
+                      {isSavingNewsletter ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : null}
+                      <span>
+                        {user.newsletterSubscribed
+                          ? "Unsubscribe"
+                          : "Subscribe"}
+                      </span>
+                    </button>
                   </div>
                 </motion.div>
 
@@ -334,7 +467,7 @@ const UserProfile = () => {
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.5 }}
+                  transition={{ delay: 0.7 }}
                   className="bg-gradient-to-br from-gray-50 to-slate-50 rounded-xl p-4 sm:p-6 border border-gray-200/50 sm:col-span-2 lg:col-span-2"
                 >
                   <div className="flex items-center space-x-3 mb-4">

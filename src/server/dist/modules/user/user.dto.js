@@ -9,7 +9,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.CreateAdminDto = exports.UserEmailDto = exports.UserIdDto = exports.UpdateUserDto = void 0;
+exports.SendNewsletterDto = exports.UpdateNewsletterPreferenceDto = exports.CreateAdminDto = exports.UserEmailDto = exports.UserIdDto = exports.UpdateUserDto = void 0;
 const class_validator_1 = require("class-validator");
 class UpdateUserDto {
 }
@@ -35,6 +35,11 @@ __decorate([
     (0, class_validator_1.IsIn)(["user", "admin"], { message: "Role must be either 'user' or 'admin'" }),
     __metadata("design:type", String)
 ], UpdateUserDto.prototype, "role", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsBoolean)({ message: "Newsletter preference must be true or false" }),
+    __metadata("design:type", Boolean)
+], UpdateUserDto.prototype, "newsletterSubscribed", void 0);
 class UserIdDto {
 }
 exports.UserIdDto = UserIdDto;
@@ -71,3 +76,27 @@ __decorate([
     (0, class_validator_1.IsString)({ message: "Password must be a string" }),
     __metadata("design:type", String)
 ], CreateAdminDto.prototype, "password", void 0);
+class UpdateNewsletterPreferenceDto {
+}
+exports.UpdateNewsletterPreferenceDto = UpdateNewsletterPreferenceDto;
+__decorate([
+    (0, class_validator_1.IsBoolean)({ message: "Newsletter preference must be true or false" }),
+    __metadata("design:type", Boolean)
+], UpdateNewsletterPreferenceDto.prototype, "newsletterSubscribed", void 0);
+class SendNewsletterDto {
+}
+exports.SendNewsletterDto = SendNewsletterDto;
+__decorate([
+    (0, class_validator_1.IsNotEmpty)({ message: "Subject is required" }),
+    (0, class_validator_1.IsString)({ message: "Subject must be a string" }),
+    (0, class_validator_1.MinLength)(3, { message: "Subject must be at least 3 characters long" }),
+    (0, class_validator_1.MaxLength)(120, { message: "Subject must not exceed 120 characters" }),
+    __metadata("design:type", String)
+], SendNewsletterDto.prototype, "subject", void 0);
+__decorate([
+    (0, class_validator_1.IsNotEmpty)({ message: "Message is required" }),
+    (0, class_validator_1.IsString)({ message: "Message must be a string" }),
+    (0, class_validator_1.MinLength)(10, { message: "Message must be at least 10 characters long" }),
+    (0, class_validator_1.MaxLength)(5000, { message: "Message must not exceed 5000 characters" }),
+    __metadata("design:type", String)
+], SendNewsletterDto.prototype, "message", void 0);

@@ -14,6 +14,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.UserService = void 0;
 const AppError_1 = __importDefault(require("@/shared/errors/AppError"));
+const sendEmail_1 = __importDefault(require("@/shared/utils/sendEmail"));
+const newsletter_1 = __importDefault(require("@/shared/templates/newsletter"));
 class UserService {
     constructor(userRepository) {
         this.userRepository = userRepository;
@@ -57,6 +59,43 @@ class UserService {
                 throw new AppError_1.default(404, "User not found");
             }
             return yield this.userRepository.updateUser(id, data);
+        });
+    }
+    updateNewsletterPreference(id, newsletterSubscribed) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const user = yield this.userRepository.findUserById(id);
+            if (!user) {
+                throw new AppError_1.default(404, "User not found");
+            }
+            return this.userRepository.updateNewsletterPreference(id, newsletterSubscribed);
+        });
+    }
+    sendNewsletter(_a) {
+        return __awaiter(this, arguments, void 0, function* ({ subject, message, }) {
+            const subscribers = yield this.userRepository.findSubscribedUsers();
+            if (subscribers.length === 0) {
+                throw new AppError_1.default(400, "There are no subscribed clients to email.");
+            }
+            const deliveries = yield Promise.allSettled(subscribers.map((subscriber) => (0, sendEmail_1.default)({
+                to: subscriber.email,
+                subject,
+                text: message,
+                html: (0, newsletter_1.default)({
+                    name: subscriber.name,
+                    subject,
+                    message,
+                }),
+            })));
+            const sentCount = deliveries.filter((result) => result.status === "fulfilled").length;
+            const failedCount = deliveries.length - sentCount;
+            if (sentCount === 0) {
+                throw new AppError_1.default(500, "Newsletter delivery failed for all subscribed clients.");
+            }
+            return {
+                audienceCount: subscribers.length,
+                sentCount,
+                failedCount,
+            };
         });
     }
     deleteUser(id, currentUserId) {

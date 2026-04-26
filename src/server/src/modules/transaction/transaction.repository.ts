@@ -15,7 +15,14 @@ export class TransactionRepository {
           include: {
             payment: true,
             shipment: true,
-            user: true,
+            user: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+                loyaltyPointsBalance: true,
+              },
+            },
             address: true,
             orderItems: true,
           },

@@ -917,3 +917,52 @@ The column `User.emailVerified` does not exist in the current database.
 [2026-04-26T16:12:49.746Z] [31MERROR[39M: Invalid access token, please log in
 [2026-04-26T16:13:10.548Z] [31MERROR[39M: Invalid access token, please log in
 [2026-04-26T16:31:53.480Z] [31MERROR[39M: Invalid access token, please log in
+[2026-04-26T17:59:07.436Z] [31MERROR[39M: Invalid access token, please log in
+[2026-04-26T17:59:07.659Z] [31MERROR[39M: Prisma error: 
+Invalid `prisma.user.findUnique()` invocation in
+D:\New folder\ss-ecommerce\src\server\src\modules\auth\auth.repository.ts:30:24
+
+  27 }
+  28 
+  29 async findUserById(id: string) {
+→ 30   return prisma.user.findUnique(
+The column `User.newsletterSubscribed` does not exist in the current database.
+[2026-04-26T17:59:54.259Z] [31MERROR[39M: Invalid access token, please log in
+[2026-04-26T17:59:54.326Z] [31MERROR[39M: Prisma error: 
+Invalid `prisma.user.findUnique()` invocation in
+D:\New folder\ss-ecommerce\src\server\src\modules\auth\auth.repository.ts:30:24
+
+  27 }
+  28 
+  29 async findUserById(id: string) {
+→ 30   return prisma.user.findUnique(
+The column `User.newsletterSubscribed` does not exist in the current database.
+[2026-04-26T18:00:02.509Z] [31MERROR[39M: Invalid access token, please log in
+[2026-04-26T18:00:02.577Z] [31MERROR[39M: Prisma error: 
+Invalid `prisma.user.findUnique()` invocation in
+D:\New folder\ss-ecommerce\src\server\src\modules\auth\auth.repository.ts:30:24
+
+  27 }
+  28 
+  29 async findUserById(id: string) {
+→ 30   return prisma.user.findUnique(
+The column `User.newsletterSubscribed` does not exist in the current database.
+[2026-04-26T18:00:25.868Z] [31MERROR[39M: Prisma error: 
+Invalid `prisma.user.findUnique()` invocation in
+D:\New folder\ss-ecommerce\src\server\src\modules\auth\auth.repository.ts:13:24
+
+  10 }
+  11 
+  12 async findUserByEmailWithPassword(email: string) {
+→ 13   return prisma.user.findUnique(
+The column `User.newsletterSubscribed` does not exist in the current database.
+[2026-04-26T18:02:50.018Z] [31MERROR[39M: Unauthorized, please log in
+[2026-04-26T18:02:50.066Z] [31MERROR[39M: Refresh token not found
+[2026-04-26T18:03:35.762Z] [31MERROR[39M: Email or password is incorrect.
+[2026-04-26T18:03:45.978Z] [31MERROR[39M: Email or password is incorrect.
+[2026-04-26T18:03:53.126Z] [31MERROR[39M: Email or password is incorrect.
+[2026-04-26T22:07:19.218Z] [31MERROR[39M: Unauthorized, please log in
+[2026-04-26T22:07:19.395Z] [31MERROR[39M: Refresh token not found
+[2026-04-26T23:24:23.046Z] [31MERROR[39M: Invalid access token, please log in
+[2026-04-26T23:25:14.340Z] [31MERROR[39M: Unauthorized, please log in
+[2026-04-26T23:25:14.390Z] [31MERROR[39M: Refresh token not found

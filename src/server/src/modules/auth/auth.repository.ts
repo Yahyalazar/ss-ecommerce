@@ -20,6 +20,8 @@ export class AuthRepository {
         email: true,
         avatar: true,
         emailVerified: true,
+        newsletterSubscribed: true,
+        loyaltyPointsBalance: true,
       },
     });
   }
@@ -34,6 +36,8 @@ export class AuthRepository {
         role: true,
         avatar: true,
         emailVerified: true,
+        newsletterSubscribed: true,
+        loyaltyPointsBalance: true,
       },
     });
   }
@@ -44,6 +48,7 @@ export class AuthRepository {
     password: string;
     role: ROLE;
     emailVerified?: boolean;
+    newsletterSubscribed?: boolean;
     emailVerificationToken?: string | null;
     emailVerificationTokenExpiresAt?: Date | null;
   }) {
@@ -61,6 +66,8 @@ export class AuthRepository {
         role: true,
         avatar: true,
         emailVerified: true,
+        newsletterSubscribed: true,
+        loyaltyPointsBalance: true,
       },
     });
   }
@@ -71,6 +78,7 @@ export class AuthRepository {
       emailVerificationToken: string | null;
       emailVerificationTokenExpiresAt: Date | null;
       emailVerified?: boolean;
+      newsletterSubscribed?: boolean;
     }
   ) {
     return prisma.user.update({

@@ -14,36 +14,78 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.UserRepository = void 0;
 const database_config_1 = __importDefault(require("@/infra/database/database.config"));
+const client_1 = require("@prisma/client");
 const authUtils_1 = require("@/shared/utils/authUtils");
+const publicUserSelect = {
+    id: true,
+    name: true,
+    email: true,
+    avatar: true,
+    role: true,
+    emailVerified: true,
+    newsletterSubscribed: true,
+    loyaltyPointsBalance: true,
+    createdAt: true,
+    updatedAt: true,
+};
 class UserRepository {
     findAllUsers() {
         return __awaiter(this, void 0, void 0, function* () {
-            return yield database_config_1.default.user.findMany();
+            return yield database_config_1.default.user.findMany({
+                orderBy: { createdAt: "desc" },
+                select: publicUserSelect,
+            });
         });
     }
     findUserById(id) {
         return __awaiter(this, void 0, void 0, function* () {
             return yield database_config_1.default.user.findUnique({
                 where: { id },
-                select: {
-                    id: true,
-                    name: true,
-                    email: true,
-                    avatar: true,
-                    role: true,
-                    emailVerified: true,
-                },
+                select: publicUserSelect,
             });
         });
     }
     findUserByEmail(email) {
         return __awaiter(this, void 0, void 0, function* () {
-            return yield database_config_1.default.user.findUnique({ where: { email } });
+            return yield database_config_1.default.user.findUnique({
+                where: { email },
+                select: publicUserSelect,
+            });
         });
     }
     updateUser(id, data) {
         return __awaiter(this, void 0, void 0, function* () {
-            return yield database_config_1.default.user.update({ where: { id }, data });
+            return yield database_config_1.default.user.update({
+                where: { id },
+                data,
+                select: publicUserSelect,
+            });
+        });
+    }
+    updateNewsletterPreference(id, newsletterSubscribed) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return yield database_config_1.default.user.update({
+                where: { id },
+                data: { newsletterSubscribed },
+                select: publicUserSelect,
+            });
+        });
+    }
+    findSubscribedUsers() {
+        return __awaiter(this, void 0, void 0, function* () {
+            return yield database_config_1.default.user.findMany({
+                where: {
+                    role: client_1.ROLE.USER,
+                    newsletterSubscribed: true,
+                    emailVerified: true,
+                },
+                select: {
+                    id: true,
+                    name: true,
+                    email: true,
+                    loyaltyPointsBalance: true,
+                },
+            });
         });
     }
     deleteUser(id) {
@@ -64,14 +106,7 @@ class UserRepository {
             const hashedPassword = yield authUtils_1.passwordUtils.hashPassword(data.password);
             return yield database_config_1.default.user.create({
                 data: Object.assign(Object.assign({}, data), { password: hashedPassword, role: data.role }),
-                select: {
-                    id: true,
-                    name: true,
-                    email: true,
-                    role: true,
-                    avatar: true,
-                    emailVerified: true,
-                },
+                select: publicUserSelect,
             });
         });
     }

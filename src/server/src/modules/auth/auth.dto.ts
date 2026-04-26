@@ -1,4 +1,5 @@
 import {
+  IsBoolean,
   IsEmail,
   IsIn,
   IsNotEmpty,
@@ -25,6 +26,10 @@ export class RegisterDto {
   @IsOptional()
   @IsIn(["USER", "ADMIN", "SUPERADMIN"])
   role?: string;
+
+  @IsOptional()
+  @IsBoolean()
+  newsletterSubscribed?: boolean;
 }
 
 export class SigninDto {

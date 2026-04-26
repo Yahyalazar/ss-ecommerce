@@ -1,0 +1,6 @@
+ALTER TABLE "User"
+ADD COLUMN "newsletterSubscribed" BOOLEAN NOT NULL DEFAULT false,
+ADD COLUMN "loyaltyPointsBalance" INTEGER NOT NULL DEFAULT 0;
+
+ALTER TABLE "Order"
+ADD COLUMN "loyaltyPointsAwarded" INTEGER NOT NULL DEFAULT 0;

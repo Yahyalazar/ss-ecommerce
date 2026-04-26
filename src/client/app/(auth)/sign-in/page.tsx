@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import Input from "@/app/components/atoms/Input";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import MainLayout from "@/app/components/templates/MainLayout";
 import { Loader2 } from "lucide-react";
 import { useSignInMutation } from "@/app/store/apis/AuthApi";
@@ -11,7 +11,7 @@ import GoogleIcon from "@/app/assets/icons/google.png";
 import FacebookIcon from "@/app/assets/icons/facebook.png";
 import TwitterIcon from "@/app/assets/icons/twitter.png";
 import Image from "next/image";
-import { AUTH_API_BASE_URL } from "@/app/lib/constants/config";
+import { buildOAuthUrl } from "@/app/lib/constants/config";
 
 interface InputForm {
   email: string;
@@ -24,8 +24,11 @@ const getErrorMessage = (error: any) =>
 const SignIn = () => {
   const [signIn, { isLoading }] = useSignInMutation();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [serverError, setServerError] = useState("");
   const [verificationEmail, setVerificationEmail] = useState("");
+  const oauthError = searchParams.get("error");
+  const oauthProvider = searchParams.get("provider");
 
   const {
     control,
@@ -55,8 +58,7 @@ const SignIn = () => {
   };
 
   const handleOAuthLogin = (provider: string) => {
-    console.log("Using AUTH API URL:", AUTH_API_BASE_URL);
-    window.location.href = `${AUTH_API_BASE_URL}/auth/${provider}`;
+    window.location.href = buildOAuthUrl(provider);
   };
 
   return (
@@ -70,6 +72,16 @@ const SignIn = () => {
           {serverError && (
             <div className="bg-red-50 border border-red-300 text-red-600 text-center text-sm p-3 rounded mb-4">
               {serverError}
+            </div>
+          )}
+
+          {!serverError && oauthError === "social_auth_failed" && (
+            <div className="bg-red-50 border border-red-300 text-red-600 text-center text-sm p-3 rounded mb-4">
+              {oauthProvider
+                ? `${oauthProvider[0].toUpperCase()}${oauthProvider.slice(
+                    1
+                  )} sign-in failed. Please try again after checking the provider configuration.`
+                : "Social sign-in failed. Please try again."}
             </div>
           )}
 
@@ -195,6 +207,7 @@ const SignIn = () => {
             ].map(({ provider, icon, label }) => (
               <button
                 key={provider}
+                type="button"
                 onClick={() => handleOAuthLogin(provider)}
                 className="w-full py-3 border-2 border-gray-100 bg-transparent text-black rounded-md font-medium hover:bg-gray-50
                  transition-colors flex items-center justify-center gap-2 text-sm"

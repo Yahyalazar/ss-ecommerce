@@ -13,11 +13,13 @@ import GoogleIcon from "@/app/assets/icons/google.png";
 import FacebookIcon from "@/app/assets/icons/facebook.png";
 import TwitterIcon from "@/app/assets/icons/twitter.png";
 import Image from "next/image";
+import { buildOAuthUrl } from "@/app/lib/constants/config";
 
 interface InputForm {
   name: string;
   email: string;
   password: string;
+  newsletterSubscribed: boolean;
 }
 
 const nameSchema = (value: string) => {
@@ -52,6 +54,7 @@ const Signup = () => {
       name: "",
       email: "",
       password: "",
+      newsletterSubscribed: false,
     },
   });
 
@@ -68,7 +71,7 @@ const Signup = () => {
   };
 
   const handleOAuthLogin = (provider: string) => {
-    window.location.href = `${process.env.NEXT_PUBLIC_API_URL}/api/v1/auth/${provider}`;
+    window.location.href = buildOAuthUrl(provider);
   };
 
   return (
@@ -113,6 +116,17 @@ const Signup = () => {
             />
 
             <PasswordField register={register} watch={watch} errors={errors} />
+
+            <label className="flex items-start gap-3 rounded-md border border-gray-200 p-3 text-sm text-gray-700">
+              <input
+                type="checkbox"
+                {...register("newsletterSubscribed")}
+                className="mt-0.5 h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+              />
+              <span>
+                Send me product news, offers, and loyalty updates by email.
+              </span>
+            </label>
 
             <button
               type="submit"
@@ -164,6 +178,7 @@ const Signup = () => {
             ].map(({ provider, icon, label }) => (
               <button
                 key={provider}
+                type="button"
                 onClick={() => handleOAuthLogin(provider)}
                 className="w-full py-3 border-2 border-gray-100 bg-transparent text-black rounded-md font-medium hover:bg-gray-50
                  transition-colors flex items-center justify-center gap-2 text-sm"

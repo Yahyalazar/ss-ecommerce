@@ -7,6 +7,8 @@ const protect_1 = __importDefault(require("@/shared/middlewares/protect"));
 const transaction_factory_1 = require("./transaction.factory");
 const express_1 = __importDefault(require("express"));
 const authorizeRole_1 = __importDefault(require("@/shared/middlewares/authorizeRole"));
+const validateDto_1 = require("@/shared/middlewares/validateDto");
+const transaction_dto_1 = require("./transaction.dto");
 const router = express_1.default.Router();
 const transactionController = (0, transaction_factory_1.makeTransactionController)();
 /**
@@ -79,7 +81,7 @@ router.get("/:id", protect_1.default, (0, authorizeRole_1.default)("ADMIN", "SUP
  *       404:
  *         description: Transaction not found.
  */
-router.put("/status/:id", protect_1.default, (0, authorizeRole_1.default)("ADMIN", "SUPERADMIN"), transactionController.updateTransactionStatus);
+router.put("/status/:id", protect_1.default, (0, authorizeRole_1.default)("ADMIN", "SUPERADMIN"), (0, validateDto_1.validateDto)(transaction_dto_1.UpdateTransactionStatusDto), transactionController.updateTransactionStatus);
 /**
  * @swagger
  * /transactions/{id}:

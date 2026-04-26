@@ -2,6 +2,8 @@ import protect from "@/shared/middlewares/protect";
 import { makeTransactionController } from "./transaction.factory";
 import express from "express";
 import authorizeRole from "@/shared/middlewares/authorizeRole";
+import { validateDto } from "@/shared/middlewares/validateDto";
+import { UpdateTransactionStatusDto } from "./transaction.dto";
 
 const router = express.Router();
 const transactionController = makeTransactionController();
@@ -92,6 +94,7 @@ router.put(
   "/status/:id",
   protect,
   authorizeRole("ADMIN", "SUPERADMIN"),
+  validateDto(UpdateTransactionStatusDto),
   transactionController.updateTransactionStatus
 );
 

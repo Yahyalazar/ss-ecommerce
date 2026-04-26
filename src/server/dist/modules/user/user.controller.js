@@ -47,9 +47,7 @@ class UserController {
         this.getMe = (0, asyncHandler_1.default)((req, res) => __awaiter(this, void 0, void 0, function* () {
             var _a;
             const id = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id;
-            console.log("id: ", id);
             const user = yield this.userService.getMe(id);
-            console.log("user: ", user);
             (0, sendResponse_1.default)(res, 200, {
                 data: { user },
                 message: "User fetched successfully",
@@ -70,6 +68,29 @@ class UserController {
                 userId: (_a = req.user) === null || _a === void 0 ? void 0 : _a.id,
                 sessionId: req.session.id,
                 timePeriod: end - start,
+            });
+        }));
+        this.updateNewsletterPreference = (0, asyncHandler_1.default)((req, res) => __awaiter(this, void 0, void 0, function* () {
+            var _a;
+            const currentUserId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id;
+            if (!currentUserId) {
+                throw new AppError_1.default(401, "User not authenticated");
+            }
+            const { newsletterSubscribed } = req.body;
+            const user = yield this.userService.updateNewsletterPreference(currentUserId, newsletterSubscribed);
+            (0, sendResponse_1.default)(res, 200, {
+                data: { user },
+                message: newsletterSubscribed
+                    ? "Newsletter subscription enabled"
+                    : "Newsletter subscription disabled",
+            });
+        }));
+        this.sendNewsletter = (0, asyncHandler_1.default)((req, res) => __awaiter(this, void 0, void 0, function* () {
+            const { subject, message } = req.body;
+            const result = yield this.userService.sendNewsletter({ subject, message });
+            (0, sendResponse_1.default)(res, 200, {
+                data: result,
+                message: `Newsletter sent to ${result.sentCount} subscribed client${result.sentCount === 1 ? "" : "s"}.`,
             });
         }));
         this.deleteUser = (0, asyncHandler_1.default)((req, res) => __awaiter(this, void 0, void 0, function* () {

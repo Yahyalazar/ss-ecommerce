@@ -35,6 +35,8 @@ class AuthRepository {
                     email: true,
                     avatar: true,
                     emailVerified: true,
+                    newsletterSubscribed: true,
+                    loyaltyPointsBalance: true,
                 },
             });
         });
@@ -50,6 +52,8 @@ class AuthRepository {
                     role: true,
                     avatar: true,
                     emailVerified: true,
+                    newsletterSubscribed: true,
+                    loyaltyPointsBalance: true,
                 },
             });
         });
@@ -66,6 +70,8 @@ class AuthRepository {
                     role: true,
                     avatar: true,
                     emailVerified: true,
+                    newsletterSubscribed: true,
+                    loyaltyPointsBalance: true,
                 },
             });
         });

@@ -5,6 +5,7 @@ import {
   useUpdateUserMutation,
   useDeleteUserMutation,
   useCreateAdminMutation,
+  useSendNewsletterMutation,
 } from "@/app/store/apis/UserApi";
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -18,6 +19,9 @@ import {
   UserPlus,
   Crown,
   Shield,
+  Mail,
+  Send,
+  Gift,
 } from "lucide-react";
 import useToast from "@/app/hooks/ui/useToast";
 import { useForm } from "react-hook-form";
@@ -45,7 +49,12 @@ const UsersDashboard = () => {
   const [deleteUser, { isLoading: isDeleting }] = useDeleteUserMutation();
   const [createAdmin, { isLoading: isCreatingAdmin }] =
     useCreateAdminMutation();
+  const [sendNewsletter, { isLoading: isSendingNewsletter }] =
+    useSendNewsletterMutation();
   const users = data?.users || [];
+  const subscribedUsersCount = users.filter(
+    (user: any) => user.newsletterSubscribed
+  ).length;
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isCreateAdminModalOpen, setIsCreateAdminModalOpen] = useState(false);
@@ -54,6 +63,8 @@ const UsersDashboard = () => {
   const [userToDelete, setUserToDelete] = useState<string | number | null>(
     null
   );
+  const [newsletterSubject, setNewsletterSubject] = useState("");
+  const [newsletterMessage, setNewsletterMessage] = useState("");
 
   const form = useForm<UserFormData>({
     defaultValues: {
@@ -143,6 +154,33 @@ const UsersDashboard = () => {
           >
             {row.role}
           </span>
+        </div>
+      ),
+      sortable: true,
+    },
+    {
+      key: "newsletterSubscribed",
+      label: "Newsletter",
+      render: (row: any) => (
+        <span
+          className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
+            row.newsletterSubscribed
+              ? "bg-emerald-100 text-emerald-700"
+              : "bg-slate-100 text-slate-600"
+          }`}
+        >
+          {row.newsletterSubscribed ? "Subscribed" : "Not Subscribed"}
+        </span>
+      ),
+      sortable: true,
+    },
+    {
+      key: "loyaltyPointsBalance",
+      label: "Points",
+      render: (row: any) => (
+        <div className="inline-flex items-center gap-2 rounded-full bg-amber-50 px-3 py-1 text-sm font-medium text-amber-700">
+          <Gift className="h-4 w-4" />
+          <span>{row.loyaltyPointsBalance ?? 0}</span>
         </div>
       ),
       sortable: true,
@@ -268,6 +306,29 @@ const UsersDashboard = () => {
     }
   };
 
+  const handleNewsletterSend = async () => {
+    const subject = newsletterSubject.trim();
+    const message = newsletterMessage.trim();
+
+    if (!subject || !message) {
+      showToast("Newsletter subject and message are required", "error");
+      return;
+    }
+
+    try {
+      const response = await sendNewsletter({ subject, message }).unwrap();
+      setNewsletterSubject("");
+      setNewsletterMessage("");
+      showToast(
+        `Newsletter sent to ${response.sentCount} subscribed client${response.sentCount === 1 ? "" : "s"}.`,
+        "success"
+      );
+    } catch (err: any) {
+      const errorMessage = err?.data?.message || "Failed to send newsletter";
+      showToast(errorMessage, "error");
+    }
+  };
+
   return (
     <PermissionGuard allowedRoles={["ADMIN", "SUPERADMIN"]}>
       <div className="min-h-screen p-6">
@@ -302,6 +363,72 @@ const UsersDashboard = () => {
               </AdminActionGuard>
             </div>
           </div>
+
+          <motion.div
+            className="mb-8 rounded-xl border border-sky-100 bg-white p-6 shadow-sm"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1, duration: 0.4 }}
+          >
+            <div className="mb-4 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+              <div>
+                <div className="mb-2 flex items-center gap-3">
+                  <div className="rounded-lg bg-sky-100 p-2">
+                    <Mail className="h-5 w-5 text-sky-600" />
+                  </div>
+                  <h2 className="text-xl font-semibold text-gray-800">
+                    Newsletter
+                  </h2>
+                </div>
+                <p className="text-sm text-gray-600">
+                  Send product news and offers to subscribed clients only.
+                </p>
+              </div>
+
+              <div className="inline-flex items-center gap-2 rounded-full bg-sky-50 px-4 py-2 text-sm font-medium text-sky-700">
+                <Users className="h-4 w-4" />
+                <span>
+                  {subscribedUsersCount} subscribed client
+                  {subscribedUsersCount === 1 ? "" : "s"}
+                </span>
+              </div>
+            </div>
+
+            <div className="grid gap-4">
+              <input
+                type="text"
+                value={newsletterSubject}
+                onChange={(e) => setNewsletterSubject(e.target.value)}
+                placeholder="Newsletter subject"
+                className="w-full rounded-lg border border-gray-200 px-4 py-3 text-sm text-gray-800 outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
+              />
+
+              <textarea
+                value={newsletterMessage}
+                onChange={(e) => setNewsletterMessage(e.target.value)}
+                placeholder="Write the message you want subscribed clients to receive..."
+                rows={5}
+                className="w-full rounded-lg border border-gray-200 px-4 py-3 text-sm text-gray-800 outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
+              />
+
+              <div className="flex justify-end">
+                <button
+                  onClick={handleNewsletterSend}
+                  disabled={isSendingNewsletter}
+                  className={`inline-flex items-center gap-2 rounded-lg bg-sky-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-sky-700 ${
+                    isSendingNewsletter ? "cursor-not-allowed opacity-70" : ""
+                  }`}
+                >
+                  {isSendingNewsletter ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Send className="h-4 w-4" />
+                  )}
+                  <span>Send Newsletter</span>
+                </button>
+              </div>
+            </div>
+          </motion.div>
 
           {/* Card Container */}
           <motion.div
