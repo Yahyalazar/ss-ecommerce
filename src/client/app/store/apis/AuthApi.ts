@@ -13,7 +13,7 @@ interface User {
 export const authApi = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
     signIn: builder.mutation<
-      { accessToken: string; user: User },
+      { message: string; user: User },
       { email: string; password: string }
     >({
       query: (credentials) => ({
@@ -22,13 +22,20 @@ export const authApi = apiSlice.injectEndpoints({
         body: credentials,
       }),
       onQueryStarted: async (_, { dispatch, queryFulfilled }) => {
-        const { data } = await queryFulfilled;
-        // Backend returns { success, message, user }
-        dispatch(setUser({ user: data.user }));
+        try {
+          const { data } = await queryFulfilled;
+          dispatch(setUser({ user: data.user }));
+        } catch {
+          // Let the page handle auth errors.
+        }
       },
     }),
     signup: builder.mutation<
-      { accessToken: string; user: User },
+      {
+        message: string;
+        email: string;
+        requiresEmailVerification: boolean;
+      },
       { name: string; email: string; password: string }
     >({
       query: (data) => ({
@@ -36,11 +43,38 @@ export const authApi = apiSlice.injectEndpoints({
         method: "POST",
         body: data,
       }),
+    }),
+    verifyEmail: builder.mutation<
+      { message: string; user: User },
+      { email: string; emailVerificationToken: string }
+    >({
+      query: (data) => ({
+        url: "/auth/verify-email",
+        method: "POST",
+        body: data,
+      }),
       onQueryStarted: async (_, { dispatch, queryFulfilled }) => {
-        const { data } = await queryFulfilled;
-        // Backend returns { success, message, user }
-        dispatch(setUser({ user: data.user }));
+        try {
+          const { data } = await queryFulfilled;
+          dispatch(setUser({ user: data.user }));
+        } catch {
+          // Let the page handle verification errors.
+        }
       },
+    }),
+    resendVerificationEmail: builder.mutation<
+      {
+        message: string;
+        email: string;
+        requiresEmailVerification: boolean;
+      },
+      { email: string }
+    >({
+      query: ({ email }) => ({
+        url: "/auth/verification-email",
+        method: "POST",
+        body: { email },
+      }),
     }),
     signOut: builder.mutation<void, void>({
       query: () => ({
@@ -72,9 +106,12 @@ export const authApi = apiSlice.injectEndpoints({
         method: "POST",
       }),
       onQueryStarted: async (_, { dispatch, queryFulfilled }) => {
-        const { data } = await queryFulfilled;
-        // Backend returns { success, message, user }
-        dispatch(setUser({ user: data.user }));
+        try {
+          const { data } = await queryFulfilled;
+          dispatch(setUser({ user: data.user }));
+        } catch {
+          // Guests are expected here.
+        }
       },
     }),
   }),
@@ -83,6 +120,8 @@ export const authApi = apiSlice.injectEndpoints({
 export const {
   useSignInMutation,
   useSignupMutation,
+  useVerifyEmailMutation,
+  useResendVerificationEmailMutation,
   useSignOutMutation,
   useForgotPasswordMutation,
   useResetPasswordMutation,

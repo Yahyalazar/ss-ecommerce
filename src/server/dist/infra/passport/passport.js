@@ -40,6 +40,7 @@ function configurePassport() {
                         data: {
                             googleId: profile.id,
                             avatar: ((_a = profile.photos[0]) === null || _a === void 0 ? void 0 : _a.value) || "",
+                            emailVerified: true,
                         },
                     });
                 }
@@ -51,6 +52,7 @@ function configurePassport() {
                         name: profile.displayName,
                         googleId: profile.id,
                         avatar: ((_b = profile.photos[0]) === null || _b === void 0 ? void 0 : _b.value) || "",
+                        emailVerified: true,
                     },
                 });
             }
@@ -86,6 +88,7 @@ function configurePassport() {
                         data: {
                             facebookId: profile.id,
                             avatar: ((_f = (_e = profile.photos) === null || _e === void 0 ? void 0 : _e[0]) === null || _f === void 0 ? void 0 : _f.value) || "",
+                            emailVerified: true,
                         },
                     });
                 }
@@ -97,6 +100,7 @@ function configurePassport() {
                         name: `${(_j = profile.name) === null || _j === void 0 ? void 0 : _j.givenName} ${(_k = profile.name) === null || _k === void 0 ? void 0 : _k.familyName}`,
                         facebookId: profile.id,
                         avatar: ((_m = (_l = profile.photos) === null || _l === void 0 ? void 0 : _l[0]) === null || _m === void 0 ? void 0 : _m.value) || "",
+                        emailVerified: true,
                     },
                 });
             }
@@ -119,7 +123,7 @@ function configurePassport() {
             : process.env.TWITTER_CALLBACK_URL_DEV,
         includeEmail: true,
     }, (accessToken, refreshToken, profile, done) => __awaiter(this, void 0, void 0, function* () {
-        var _a, _b, _c, _d;
+        var _a, _b, _c, _d, _e, _f;
         console.log("Twitter accessToken:", accessToken);
         console.log("Twitter refreshToken:", refreshToken);
         console.log("Twitter profile:", JSON.stringify(profile, null, 2));
@@ -130,10 +134,11 @@ function configurePassport() {
             }
             const email = ((_b = (_a = profile.emails) === null || _a === void 0 ? void 0 : _a[0]) === null || _b === void 0 ? void 0 : _b.value) ||
                 `twitter-${profile.id}@placeholder.com`;
+            const hasVerifiedEmail = Boolean((_d = (_c = profile.emails) === null || _c === void 0 ? void 0 : _c[0]) === null || _d === void 0 ? void 0 : _d.value);
             const name = profile.displayName ||
                 profile.username ||
                 `Twitter User ${profile.id}`;
-            const avatar = ((_d = (_c = profile.photos) === null || _c === void 0 ? void 0 : _c[0]) === null || _d === void 0 ? void 0 : _d.value) || "";
+            const avatar = ((_f = (_e = profile.photos) === null || _e === void 0 ? void 0 : _e[0]) === null || _f === void 0 ? void 0 : _f.value) || "";
             let user = yield database_config_1.default.user.findUnique({
                 where: { email },
             });
@@ -141,10 +146,7 @@ function configurePassport() {
                 if (!user.twitterId) {
                     user = yield database_config_1.default.user.update({
                         where: { email },
-                        data: {
-                            twitterId: profile.id,
-                            avatar,
-                        },
+                        data: Object.assign({ twitterId: profile.id, avatar }, (hasVerifiedEmail ? { emailVerified: true } : {})),
                     });
                 }
             }
@@ -155,6 +157,7 @@ function configurePassport() {
                         name,
                         twitterId: profile.id,
                         avatar,
+                        emailVerified: hasVerifiedEmail,
                     },
                 });
             }

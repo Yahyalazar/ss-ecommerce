@@ -1,4 +1,5 @@
 "use client";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import Input from "@/app/components/atoms/Input";
 import Link from "next/link";
@@ -17,9 +18,14 @@ interface InputForm {
   password: string;
 }
 
+const getErrorMessage = (error: any) =>
+  error?.data?.message || "Something went wrong. Please try again.";
+
 const SignIn = () => {
-  const [signIn, { error, isLoading }] = useSignInMutation();
+  const [signIn, { isLoading }] = useSignInMutation();
   const router = useRouter();
+  const [serverError, setServerError] = useState("");
+  const [verificationEmail, setVerificationEmail] = useState("");
 
   const {
     control,
@@ -34,10 +40,17 @@ const SignIn = () => {
 
   const onSubmit = async (formData: InputForm) => {
     try {
+      setServerError("");
+      setVerificationEmail("");
       await signIn(formData).unwrap();
       router.push("/");
     } catch (error) {
-      console.log("error: ", error);
+      const message = getErrorMessage(error);
+      setServerError(message);
+
+      if (message.toLowerCase().includes("verify your email")) {
+        setVerificationEmail(formData.email);
+      }
     }
   };
 
@@ -54,9 +67,9 @@ const SignIn = () => {
             Sign In
           </h2>
 
-          {error && (
+          {serverError && (
             <div className="bg-red-50 border border-red-300 text-red-600 text-center text-sm p-3 rounded mb-4">
-              An unexpected error occurred
+              {serverError}
             </div>
           )}
 
@@ -107,6 +120,21 @@ const SignIn = () => {
               )}
             </button>
           </form>
+
+          {verificationEmail && (
+            <div className="mt-4 rounded-md border border-sky-200 bg-sky-50 p-4 text-sm text-sky-800">
+              This account still needs email verification.{" "}
+              <Link
+                href={`/verify-email?email=${encodeURIComponent(
+                  verificationEmail
+                )}`}
+                className="font-medium text-sky-900 underline underline-offset-2"
+              >
+                Enter your verification code
+              </Link>
+              .
+            </div>
+          )}
 
           <div className="text-center text-sm text-gray-600 mt-4">
             Don&apos;t have an account?{" "}

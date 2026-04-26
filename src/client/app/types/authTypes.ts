@@ -4,11 +4,13 @@ export interface User {
   role: string;
   avatar: string | null;
   email: string;
+  emailVerified: boolean;
   user?: {
     id: string;
     name: string;
     role: string;
     avatar: string | null;
     email: string;
+    emailVerified: boolean;
   };
 }

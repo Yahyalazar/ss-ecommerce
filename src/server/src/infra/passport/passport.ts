@@ -39,6 +39,7 @@ export default function configurePassport() {
                 data: {
                   googleId: profile.id,
                   avatar: profile.photos![0]?.value || "",
+                  emailVerified: true,
                 },
               });
             }
@@ -49,6 +50,7 @@ export default function configurePassport() {
                 name: profile.displayName,
                 googleId: profile.id,
                 avatar: profile.photos![0]?.value || "",
+                emailVerified: true,
               },
             });
           }
@@ -101,6 +103,7 @@ export default function configurePassport() {
                 data: {
                   facebookId: profile.id,
                   avatar: profile.photos?.[0]?.value || "",
+                  emailVerified: true,
                 },
               });
             }
@@ -111,6 +114,7 @@ export default function configurePassport() {
                 name: `${profile.name?.givenName} ${profile.name?.familyName}`,
                 facebookId: profile.id,
                 avatar: profile.photos?.[0]?.value || "",
+                emailVerified: true,
               },
             });
           }
@@ -162,6 +166,7 @@ export default function configurePassport() {
           const email =
             profile.emails?.[0]?.value ||
             `twitter-${profile.id}@placeholder.com`;
+          const hasVerifiedEmail = Boolean(profile.emails?.[0]?.value);
           const name =
             profile.displayName ||
             profile.username ||
@@ -179,6 +184,7 @@ export default function configurePassport() {
                 data: {
                   twitterId: profile.id,
                   avatar,
+                  ...(hasVerifiedEmail ? { emailVerified: true } : {}),
                 },
               });
             }
@@ -189,6 +195,7 @@ export default function configurePassport() {
                 name,
                 twitterId: profile.id,
                 avatar,
+                emailVerified: hasVerifiedEmail,
               },
             });
           }

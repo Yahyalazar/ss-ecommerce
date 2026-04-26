@@ -16,6 +16,7 @@ export class UserRepository {
         email: true,
         avatar: true,
         role: true,
+        emailVerified: true,
       },
     });
   }
@@ -57,6 +58,7 @@ export class UserRepository {
     email: string;
     password: string;
     role: string;
+    emailVerified?: boolean;
   }) {
     // Hash the password before storing
     const hashedPassword = await passwordUtils.hashPassword(data.password);
@@ -73,6 +75,7 @@ export class UserRepository {
         email: true,
         role: true,
         avatar: true,
+        emailVerified: true,
       },
     });
   }

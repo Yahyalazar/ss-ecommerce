@@ -14,6 +14,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AuthRepository = void 0;
 const database_config_1 = __importDefault(require("@/infra/database/database.config"));
+const authUtils_1 = require("@/shared/utils/authUtils");
 class AuthRepository {
     findUserByEmail(email) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -33,6 +34,7 @@ class AuthRepository {
                     name: true,
                     email: true,
                     avatar: true,
+                    emailVerified: true,
                 },
             });
         });
@@ -47,20 +49,23 @@ class AuthRepository {
                     email: true,
                     role: true,
                     avatar: true,
+                    emailVerified: true,
                 },
             });
         });
     }
     createUser(data) {
         return __awaiter(this, void 0, void 0, function* () {
+            const hashedPassword = yield authUtils_1.passwordUtils.hashPassword(data.password);
             return database_config_1.default.user.create({
-                data,
+                data: Object.assign(Object.assign({}, data), { password: hashedPassword }),
                 select: {
                     id: true,
                     name: true,
                     email: true,
                     role: true,
                     avatar: true,
+                    emailVerified: true,
                 },
             });
         });
@@ -93,10 +98,11 @@ class AuthRepository {
     }
     updateUserPassword(userId, password) {
         return __awaiter(this, void 0, void 0, function* () {
+            const hashedPassword = yield authUtils_1.passwordUtils.hashPassword(password);
             return database_config_1.default.user.update({
                 where: { id: userId },
                 data: {
-                    password,
+                    password: hashedPassword,
                     resetPasswordToken: null,
                     resetPasswordTokenExpiresAt: null,
                 },

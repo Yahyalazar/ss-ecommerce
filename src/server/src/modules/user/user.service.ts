@@ -101,6 +101,7 @@ export class UserService {
     const newAdmin = await this.userRepository.createUser({
       ...adminData,
       role: "ADMIN",
+      emailVerified: true,
     });
 
     return newAdmin;

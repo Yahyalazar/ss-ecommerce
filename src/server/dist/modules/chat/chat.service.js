@@ -83,7 +83,12 @@ class ChatService {
                 }
             }
             const message = yield this.chatRepository.createMessage(chatId, senderId, content, type, url);
+            yield this.chatRepository.touchChat(chatId);
             this.io.to(`chat:${chatId}`).emit("newMessage", message);
+            this.io.to("admin").emit("chatMessageCreated", {
+                chatId,
+                message,
+            });
             return message;
         });
     }

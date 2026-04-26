@@ -38,34 +38,76 @@ class AuthController {
         this.cartService = cartService;
         this.logsService = (0, logs_factory_1.makeLogsService)();
         this.signup = (0, asyncHandler_1.default)((req, res) => __awaiter(this, void 0, void 0, function* () {
-            var _a;
             const start = Date.now();
-            const end = Date.now();
             const { name, email, password, role } = req.body;
-            const { user, accessToken, refreshToken } = yield this.authService.registerUser({
+            const response = yield this.authService.registerUser({
                 name,
                 email,
                 password,
                 role,
             });
+            (0, sendResponse_1.default)(res, 201, {
+                message: response.message,
+                data: {
+                    email: response.email,
+                    requiresEmailVerification: response.requiresEmailVerification,
+                },
+            });
+            const end = Date.now();
+            this.logsService.info("Register", {
+                userId: null,
+                email: response.email,
+                sessionId: req.session.id,
+                timePeriod: end - start,
+            });
+        }));
+        this.verifyEmail = (0, asyncHandler_1.default)((req, res) => __awaiter(this, void 0, void 0, function* () {
+            var _a;
+            const start = Date.now();
+            const { email, emailVerificationToken } = req.body;
+            const { user, accessToken, refreshToken } = yield this.authService.verifyEmail({
+                email,
+                emailVerificationToken,
+            });
             res.cookie("refreshToken", refreshToken, constants_1.cookieOptions);
             res.cookie("accessToken", accessToken, constants_1.cookieOptions);
-            const userId = user.id;
             const sessionId = req.session.id;
-            yield ((_a = this.cartService) === null || _a === void 0 ? void 0 : _a.mergeCartsOnLogin(sessionId, userId));
-            (0, sendResponse_1.default)(res, 201, {
-                message: "User registered successfully",
+            yield ((_a = this.cartService) === null || _a === void 0 ? void 0 : _a.mergeCartsOnLogin(sessionId, user.id));
+            (0, sendResponse_1.default)(res, 200, {
+                message: "Email verified successfully",
                 data: {
                     user: {
                         id: user.id,
                         name: user.name,
+                        email: user.email,
                         role: user.role,
                         avatar: user.avatar || null,
+                        emailVerified: user.emailVerified,
                     },
                 },
             });
-            this.logsService.info("Register", {
-                userId,
+            const end = Date.now();
+            this.logsService.info("Verify Email", {
+                userId: user.id,
+                sessionId,
+                timePeriod: end - start,
+            });
+        }));
+        this.resendVerificationEmail = (0, asyncHandler_1.default)((req, res) => __awaiter(this, void 0, void 0, function* () {
+            const start = Date.now();
+            const { email } = req.body;
+            const response = yield this.authService.resendVerificationEmail(email);
+            (0, sendResponse_1.default)(res, 200, {
+                message: response.message,
+                data: {
+                    email: response.email,
+                    requiresEmailVerification: response.requiresEmailVerification,
+                },
+            });
+            const end = Date.now();
+            this.logsService.info("Resend Verification Email", {
+                userId: null,
+                email: response.email,
                 sessionId: req.session.id,
                 timePeriod: end - start,
             });
@@ -87,8 +129,10 @@ class AuthController {
                     user: {
                         id: user.id,
                         name: user.name,
+                        email: user.email,
                         role: user.role,
                         avatar: user.avatar,
+                        emailVerified: user.emailVerified,
                     },
                 },
                 message: "User logged in successfully",

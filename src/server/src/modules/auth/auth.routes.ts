@@ -5,6 +5,15 @@ import { cookieOptions } from "@/shared/constants";
 import { CartService } from "../cart/cart.service";
 import { CartRepository } from "../cart/cart.repository";
 import handleSocialLogin from "@/shared/utils/auth/handleSocialLogin";
+import { validateDto } from "@/shared/middlewares/validateDto";
+import {
+  ForgotPasswordDto,
+  RegisterDto,
+  ResendVerificationEmailDto,
+  ResetPasswordDto,
+  SigninDto,
+  VerifyEmailDto,
+} from "./auth.dto";
 
 const router = express.Router();
 const authController = makeAuthController();
@@ -175,14 +184,14 @@ router.get(
  *       201:
  *         description: User successfully created.
  */
-router.post("/sign-up", authController.signup);
+router.post("/sign-up", validateDto(RegisterDto), authController.signup);
 
 /**
  * @swagger
  * /verify-email:
  *   post:
  *     summary: Verify email address
- *     description: Sends a verification email to the user to confirm their email address.
+ *     description: Verifies the email address using the code sent to the user.
  *     requestBody:
  *       required: true
  *       content:
@@ -193,28 +202,44 @@ router.post("/sign-up", authController.signup);
  *               email:
  *                 type: string
  *                 description: The email address of the user to verify.
+ *               emailVerificationToken:
+ *                 type: string
+ *                 description: The 6-digit verification code sent by email.
  *     responses:
  *       200:
- *         description: Email verification sent.
+ *         description: Email verified successfully.
  */
+router.post(
+  "/verify-email",
+  validateDto(VerifyEmailDto),
+  authController.verifyEmail
+);
 
 /**
  * @swagger
- * /verification-email/{email}:
- *   get:
+ * /verification-email:
+ *   post:
  *     summary: Resend verification email
  *     description: Resends the verification email to a given address.
- *     parameters:
- *       - in: path
- *         name: email
- *         required: true
- *         schema:
- *           type: string
- *         description: The email address of the user who needs a verification email.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 description: The email address of the user who needs a verification email.
  *     responses:
  *       200:
  *         description: Verification email resent.
  */
+router.post(
+  "/verification-email",
+  validateDto(ResendVerificationEmailDto),
+  authController.resendVerificationEmail
+);
 
 /**
  * @swagger
@@ -239,7 +264,7 @@ router.post("/sign-up", authController.signup);
  *       200:
  *         description: User successfully signed in.
  */
-router.post("/sign-in", authController.signin);
+router.post("/sign-in", validateDto(SigninDto), authController.signin);
 
 /**
  * @swagger
@@ -283,7 +308,11 @@ router.post("/refresh-token", authController.refreshToken);
  *       200:
  *         description: Password reset email sent.
  */
-router.post("/forgot-password", authController.forgotPassword);
+router.post(
+  "/forgot-password",
+  validateDto(ForgotPasswordDto),
+  authController.forgotPassword
+);
 
 /**
  * @swagger
@@ -308,7 +337,11 @@ router.post("/forgot-password", authController.forgotPassword);
  *       200:
  *         description: Password successfully reset.
  */
-router.post("/reset-password", authController.resetPassword);
+router.post(
+  "/reset-password",
+  validateDto(ResetPasswordDto),
+  authController.resetPassword
+);
 
 /**
  * @swagger

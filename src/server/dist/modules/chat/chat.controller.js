@@ -77,7 +77,8 @@ class ChatController {
             });
         }));
         this.sendMessage = (0, asyncHandler_1.default)((req, res) => __awaiter(this, void 0, void 0, function* () {
-            const { chatId, content } = req.body;
+            const { chatId } = req.params;
+            const { content } = req.body;
             const user = req.user;
             const file = req.file;
             console.log("file => ", file);

@@ -31,6 +31,7 @@ class UserRepository {
                     email: true,
                     avatar: true,
                     role: true,
+                    emailVerified: true,
                 },
             });
         });
@@ -69,6 +70,7 @@ class UserRepository {
                     email: true,
                     role: true,
                     avatar: true,
+                    emailVerified: true,
                 },
             });
         });

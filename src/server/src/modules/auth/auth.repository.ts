@@ -1,5 +1,6 @@
 import prisma from "@/infra/database/database.config";
 import { ROLE } from "@prisma/client";
+import { passwordUtils } from "@/shared/utils/authUtils";
 
 export class AuthRepository {
   async findUserByEmail(email: string) {
@@ -18,6 +19,7 @@ export class AuthRepository {
         name: true,
         email: true,
         avatar: true,
+        emailVerified: true,
       },
     });
   }
@@ -31,6 +33,7 @@ export class AuthRepository {
         email: true,
         role: true,
         avatar: true,
+        emailVerified: true,
       },
     });
   }
@@ -40,15 +43,24 @@ export class AuthRepository {
     name: string;
     password: string;
     role: ROLE;
+    emailVerified?: boolean;
+    emailVerificationToken?: string | null;
+    emailVerificationTokenExpiresAt?: Date | null;
   }) {
+    const hashedPassword = await passwordUtils.hashPassword(data.password);
+
     return prisma.user.create({
-      data,
+      data: {
+        ...data,
+        password: hashedPassword,
+      },
       select: {
         id: true,
         name: true,
         email: true,
         role: true,
         avatar: true,
+        emailVerified: true,
       },
     });
   }
@@ -91,10 +103,12 @@ export class AuthRepository {
   }
 
   async updateUserPassword(userId: string, password: string) {
+    const hashedPassword = await passwordUtils.hashPassword(password);
+
     return prisma.user.update({
       where: { id: userId },
       data: {
-        password,
+        password: hashedPassword,
         resetPasswordToken: null,
         resetPasswordTokenExpiresAt: null,
       },

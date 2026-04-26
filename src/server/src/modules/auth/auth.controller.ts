@@ -20,41 +20,93 @@ export class AuthController {
 
   signup = asyncHandler(async (req: Request, res: Response): Promise<void> => {
     const start = Date.now();
-    const end = Date.now();
     const { name, email, password, role } = req.body;
-    const { user, accessToken, refreshToken } =
-      await this.authService.registerUser({
-        name,
-        email,
-        password,
-        role,
-      });
-
-    res.cookie("refreshToken", refreshToken, cookieOptions);
-    res.cookie("accessToken", accessToken, cookieOptions);
-
-    const userId = user.id;
-    const sessionId = req.session.id;
-
-    await this.cartService?.mergeCartsOnLogin(sessionId, userId);
+    const response = await this.authService.registerUser({
+      name,
+      email,
+      password,
+      role,
+    });
 
     sendResponse(res, 201, {
-      message: "User registered successfully",
+      message: response.message,
       data: {
-        user: {
-          id: user.id,
-          name: user.name,
-          role: user.role,
-          avatar: user.avatar || null,
-        },
+        email: response.email,
+        requiresEmailVerification: response.requiresEmailVerification,
       },
     });
+    const end = Date.now();
+
     this.logsService.info("Register", {
-      userId,
+      userId: null,
+      email: response.email,
       sessionId: req.session.id,
       timePeriod: end - start,
     });
   });
+
+  verifyEmail = asyncHandler(
+    async (req: Request, res: Response): Promise<void> => {
+      const start = Date.now();
+      const { email, emailVerificationToken } = req.body;
+      const { user, accessToken, refreshToken } =
+        await this.authService.verifyEmail({
+          email,
+          emailVerificationToken,
+        });
+
+      res.cookie("refreshToken", refreshToken, cookieOptions);
+      res.cookie("accessToken", accessToken, cookieOptions);
+
+      const sessionId = req.session.id;
+      await this.cartService?.mergeCartsOnLogin(sessionId, user.id);
+
+      sendResponse(res, 200, {
+        message: "Email verified successfully",
+        data: {
+          user: {
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            role: user.role,
+            avatar: user.avatar || null,
+            emailVerified: user.emailVerified,
+          },
+        },
+      });
+      const end = Date.now();
+
+      this.logsService.info("Verify Email", {
+        userId: user.id,
+        sessionId,
+        timePeriod: end - start,
+      });
+    }
+  );
+
+  resendVerificationEmail = asyncHandler(
+    async (req: Request, res: Response): Promise<void> => {
+      const start = Date.now();
+      const { email } = req.body;
+      const response = await this.authService.resendVerificationEmail(email);
+
+      sendResponse(res, 200, {
+        message: response.message,
+        data: {
+          email: response.email,
+          requiresEmailVerification: response.requiresEmailVerification,
+        },
+      });
+      const end = Date.now();
+
+      this.logsService.info("Resend Verification Email", {
+        userId: null,
+        email: response.email,
+        sessionId: req.session.id,
+        timePeriod: end - start,
+      });
+    }
+  );
 
   signin = asyncHandler(async (req: Request, res: Response): Promise<void> => {
     const { email, password } = req.body;
@@ -75,8 +127,10 @@ export class AuthController {
         user: {
           id: user.id,
           name: user.name,
+          email: user.email,
           role: user.role,
           avatar: user.avatar,
+          emailVerified: user.emailVerified,
         },
       },
       message: "User logged in successfully",

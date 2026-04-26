@@ -1,9 +1,16 @@
 import crypto from "crypto";
 import AppError from "@/shared/errors/AppError";
 import sendEmail from "@/shared/utils/sendEmail";
+import emailVerificationTemplate from "@/shared/templates/emailVerification";
 import passwordResetTemplate from "@/shared/templates/passwordReset";
 import { tokenUtils, passwordUtils } from "@/shared/utils/authUtils";
-import { AuthResponse, RegisterUserParams, SignInParams } from "./auth.types";
+import {
+  AuthResponse,
+  RegisterUserParams,
+  SignInParams,
+  VerificationPendingResponse,
+  VerifyEmailParams,
+} from "./auth.types";
 import { ROLE } from "@prisma/client";
 import logger from "@/infra/winston/logger";
 import jwt from "jsonwebtoken";
@@ -14,57 +21,134 @@ import NotFoundError from "@/shared/errors/NotFoundError";
 export class AuthService {
   constructor(private authRepository: AuthRepository) {}
 
+  private normalizeEmail(email: string) {
+    return email.trim().toLowerCase();
+  }
+
+  private getClientUrl() {
+    const clientUrl =
+      process.env.NODE_ENV === "production"
+        ? process.env.CLIENT_URL_PROD
+        : process.env.CLIENT_URL_DEV;
+
+    if (!clientUrl) {
+      throw new AppError(
+        500,
+        "Client URL is not configured. Set CLIENT_URL_DEV or CLIENT_URL_PROD."
+      );
+    }
+
+    return clientUrl;
+  }
+
+  private createEmailVerificationToken() {
+    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    const hashedToken = crypto.createHash("sha256").update(code).digest("hex");
+
+    return {
+      code,
+      hashedToken,
+      expiresAt: new Date(Date.now() + 10 * 60 * 1000),
+    };
+  }
+
+  private async sendVerificationEmail(email: string, code: string) {
+    const htmlTemplate = emailVerificationTemplate(code);
+
+    try {
+      await sendEmail({
+        to: email,
+        subject: "Verify your email address",
+        html: htmlTemplate,
+        text: `Your verification code is ${code}`,
+      });
+    } catch (error) {
+      if (error instanceof AppError) {
+        throw error;
+      }
+
+      throw new AppError(
+        500,
+        "We couldn't send the verification email. Please try again."
+      );
+    }
+  }
+
   async registerUser({
     name,
     email,
     password,
     role,
-  }: RegisterUserParams): Promise<AuthResponse> {
-    const existingUser = await this.authRepository.findUserByEmail(email);
+  }: RegisterUserParams): Promise<VerificationPendingResponse> {
+    const normalizedEmail = this.normalizeEmail(email);
+    const existingUser = await this.authRepository.findUserByEmail(
+      normalizedEmail
+    );
 
     if (existingUser) {
-      throw new AppError(
-        400,
-        "This email is already registered, please log in instead."
-      );
+      if (existingUser.emailVerified) {
+        throw new AppError(
+          400,
+          "This email is already registered, please log in instead."
+        );
+      }
+
+      if (!existingUser.password) {
+        throw new AppError(
+          400,
+          "This email is already linked to a social sign-in account."
+        );
+      }
+
+      const verificationToken = this.createEmailVerificationToken();
+
+      await this.authRepository.updateUserEmailVerification(existingUser.id, {
+        emailVerificationToken: verificationToken.hashedToken,
+        emailVerificationTokenExpiresAt: verificationToken.expiresAt,
+        emailVerified: false,
+      });
+
+      await this.sendVerificationEmail(normalizedEmail, verificationToken.code);
+
+      return {
+        email: normalizedEmail,
+        message:
+          "Your account is waiting for verification. We sent a new verification code.",
+        requiresEmailVerification: true,
+      };
     }
+
+    const verificationToken = this.createEmailVerificationToken();
 
     // Force new registrations to be USER role only for security
     const newUser = await this.authRepository.createUser({
-      email,
+      email: normalizedEmail,
       name,
       password,
       role: ROLE.USER, // Ignore any role passed from client for security
+      emailVerified: false,
+      emailVerificationToken: verificationToken.hashedToken,
+      emailVerificationTokenExpiresAt: verificationToken.expiresAt,
     });
 
-    const accessToken = tokenUtils.generateAccessToken(newUser.id);
-    const refreshToken = tokenUtils.generateRefreshToken(newUser.id);
+    await this.sendVerificationEmail(newUser.email, verificationToken.code);
 
     return {
-      user: {
-        id: newUser.id,
-        name: newUser.name,
-        email: newUser.email,
-        role: newUser.role,
-        avatar: null,
-      },
-      accessToken,
-      refreshToken,
+      email: newUser.email,
+      message: "Account created. Please verify your email to continue.",
+      requiresEmailVerification: true,
     };
   }
 
   async signin({ email, password }: SignInParams): Promise<{
-    user: {
-      id: string;
-      role: ROLE;
-      name: string;
-      email: string;
-      avatar: string | null;
-    };
+    user: AuthResponse["user"];
     accessToken: string;
     refreshToken: string;
   }> {
-    const user = await this.authRepository.findUserByEmailWithPassword(email);
+    const normalizedEmail = this.normalizeEmail(email);
+    const user = await this.authRepository.findUserByEmailWithPassword(
+      normalizedEmail
+    );
 
     if (!user) {
       throw new BadRequestError("Email or password is incorrect.");
@@ -73,6 +157,14 @@ export class AuthService {
     if (!user.password) {
       throw new AppError(400, "Email or password is incorrect.");
     }
+
+    if (!user.emailVerified) {
+      throw new AppError(
+        403,
+        "Please verify your email before signing in."
+      );
+    }
+
     const isPasswordValid = await passwordUtils.comparePassword(
       password,
       user.password
@@ -87,12 +179,103 @@ export class AuthService {
     return { accessToken, refreshToken, user };
   }
 
+  async verifyEmail({
+    email,
+    emailVerificationToken,
+  }: VerifyEmailParams): Promise<AuthResponse> {
+    const normalizedEmail = this.normalizeEmail(email);
+    const user = await this.authRepository.findUserByEmail(normalizedEmail);
+
+    if (!user) {
+      throw new NotFoundError("User");
+    }
+
+    if (user.emailVerified) {
+      throw new AppError(400, "Email is already verified. Please sign in.");
+    }
+
+    const hashedToken = crypto
+      .createHash("sha256")
+      .update(emailVerificationToken.trim())
+      .digest("hex");
+
+    if (
+      !user.emailVerificationToken ||
+      !user.emailVerificationTokenExpiresAt ||
+      user.emailVerificationToken !== hashedToken ||
+      user.emailVerificationTokenExpiresAt < new Date()
+    ) {
+      throw new BadRequestError("Invalid or expired verification code.");
+    }
+
+    await this.authRepository.updateUserEmailVerification(user.id, {
+      emailVerificationToken: null,
+      emailVerificationTokenExpiresAt: null,
+      emailVerified: true,
+    });
+
+    const accessToken = tokenUtils.generateAccessToken(user.id);
+    const refreshToken = tokenUtils.generateRefreshToken(user.id);
+
+    return {
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        avatar: user.avatar,
+        emailVerified: true,
+      },
+      accessToken,
+      refreshToken,
+    };
+  }
+
+  async resendVerificationEmail(
+    email: string
+  ): Promise<VerificationPendingResponse> {
+    const normalizedEmail = this.normalizeEmail(email);
+    const user = await this.authRepository.findUserByEmail(normalizedEmail);
+
+    if (!user) {
+      throw new NotFoundError("User");
+    }
+
+    if (user.emailVerified) {
+      throw new AppError(400, "Email is already verified. Please sign in.");
+    }
+
+    if (!user.password) {
+      throw new AppError(
+        400,
+        "This email is already linked to a social sign-in account."
+      );
+    }
+
+    const verificationToken = this.createEmailVerificationToken();
+
+    await this.authRepository.updateUserEmailVerification(user.id, {
+      emailVerificationToken: verificationToken.hashedToken,
+      emailVerificationTokenExpiresAt: verificationToken.expiresAt,
+      emailVerified: false,
+    });
+
+    await this.sendVerificationEmail(normalizedEmail, verificationToken.code);
+
+    return {
+      email: normalizedEmail,
+      message: "A new verification code has been sent to your email.",
+      requiresEmailVerification: true,
+    };
+  }
+
   async signout(): Promise<{ message: string }> {
     return { message: "User logged out successfully" };
   }
 
   async forgotPassword(email: string): Promise<{ message: string }> {
-    const user = await this.authRepository.findUserByEmail(email);
+    const normalizedEmail = this.normalizeEmail(email);
+    const user = await this.authRepository.findUserByEmail(normalizedEmail);
 
     if (!user) {
       throw new NotFoundError("Email");
@@ -104,20 +287,31 @@ export class AuthService {
       .update(resetToken)
       .digest("hex");
 
-    await this.authRepository.updateUserPasswordReset(email, {
+    await this.authRepository.updateUserPasswordReset(normalizedEmail, {
       resetPasswordToken: hashedToken,
       resetPasswordTokenExpiresAt: new Date(Date.now() + 10 * 60 * 1000),
     });
 
-    const resetUrl = `${process.env.CLIENT_URL}/password-reset/${resetToken}`;
+    const resetUrl = `${this.getClientUrl()}/password-reset/${resetToken}`;
     const htmlTemplate = passwordResetTemplate(resetUrl);
 
-    await sendEmail({
-      to: user.email,
-      subject: "Reset your password",
-      html: htmlTemplate,
-      text: "Reset your password",
-    });
+    try {
+      await sendEmail({
+        to: user.email,
+        subject: "Reset your password",
+        html: htmlTemplate,
+        text: "Reset your password",
+      });
+    } catch (error) {
+      if (error instanceof AppError) {
+        throw error;
+      }
+
+      throw new AppError(
+        500,
+        "We couldn't send the password reset email. Please try again."
+      );
+    }
 
     return { message: "Password reset email sent successfully" };
   }

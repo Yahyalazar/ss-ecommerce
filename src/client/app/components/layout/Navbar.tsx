@@ -172,7 +172,7 @@ const Navbar = () => {
               ) : shouldShowSignInLink ? (
                 <Link
                   href="/sign-in"
-                  className="hidden sm:block px-4 py-2 text-sm font-medium text-gray-800 hover:text-indigo-600 transition-colors"
+                  className="hidden sm:inline-flex items-center justify-center rounded-full border border-indigo-200 bg-gradient-to-r from-indigo-600 via-indigo-500 to-sky-500 px-5 py-2 text-sm font-semibold text-white shadow-sm shadow-indigo-200/70 transition-all duration-200 hover:-translate-y-0.5 hover:border-indigo-300 hover:shadow-lg hover:shadow-indigo-200/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2"
                 >
                   Sign in
                 </Link>
@@ -207,7 +207,7 @@ const Navbar = () => {
                   <>
                     <Link
                       href="/sign-in"
-                      className="block px-3 py-2 text-gray-800 hover:bg-gray-100 rounded-md"
+                      className="block rounded-xl border border-indigo-100 bg-gradient-to-r from-indigo-50 via-white to-sky-50 px-4 py-3 font-medium text-indigo-700 shadow-sm transition-all duration-200 hover:border-indigo-200 hover:text-indigo-800 hover:shadow-md"
                       onClick={() => setMobileMenuOpen(false)}
                     >
                       Sign in

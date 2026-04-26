@@ -94,7 +94,7 @@ class UserService {
                 throw new AppError_1.default(400, "User with this email already exists");
             }
             // Create new admin with ADMIN role (not SUPERADMIN)
-            const newAdmin = yield this.userRepository.createUser(Object.assign(Object.assign({}, adminData), { role: "ADMIN" }));
+            const newAdmin = yield this.userRepository.createUser(Object.assign(Object.assign({}, adminData), { role: "ADMIN", emailVerified: true }));
             return newAdmin;
         });
     }

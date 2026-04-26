@@ -76,6 +76,15 @@ class ChatRepository {
             });
         });
     }
+    touchChat(chatId) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return database_config_1.default.chat.update({
+                where: { id: chatId },
+                data: { updatedAt: new Date() },
+                include: { user: true, messages: { include: { sender: true } } },
+            });
+        });
+    }
     updateChatStatus(chatId, status) {
         return __awaiter(this, void 0, void 0, function* () {
             return database_config_1.default.chat.update({

@@ -16,6 +16,7 @@ exports.AuthService = void 0;
 const crypto_1 = __importDefault(require("crypto"));
 const AppError_1 = __importDefault(require("@/shared/errors/AppError"));
 const sendEmail_1 = __importDefault(require("@/shared/utils/sendEmail"));
+const emailVerification_1 = __importDefault(require("@/shared/templates/emailVerification"));
 const passwordReset_1 = __importDefault(require("@/shared/templates/passwordReset"));
 const authUtils_1 = require("@/shared/utils/authUtils");
 const client_1 = require("@prisma/client");
@@ -27,42 +28,101 @@ class AuthService {
     constructor(authRepository) {
         this.authRepository = authRepository;
     }
+    normalizeEmail(email) {
+        return email.trim().toLowerCase();
+    }
+    getClientUrl() {
+        const clientUrl = process.env.NODE_ENV === "production"
+            ? process.env.CLIENT_URL_PROD
+            : process.env.CLIENT_URL_DEV;
+        if (!clientUrl) {
+            throw new AppError_1.default(500, "Client URL is not configured. Set CLIENT_URL_DEV or CLIENT_URL_PROD.");
+        }
+        return clientUrl;
+    }
+    createEmailVerificationToken() {
+        const code = Math.floor(100000 + Math.random() * 900000).toString();
+        const hashedToken = crypto_1.default.createHash("sha256").update(code).digest("hex");
+        return {
+            code,
+            hashedToken,
+            expiresAt: new Date(Date.now() + 10 * 60 * 1000),
+        };
+    }
+    sendVerificationEmail(email, code) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const htmlTemplate = (0, emailVerification_1.default)(code);
+            try {
+                yield (0, sendEmail_1.default)({
+                    to: email,
+                    subject: "Verify your email address",
+                    html: htmlTemplate,
+                    text: `Your verification code is ${code}`,
+                });
+            }
+            catch (error) {
+                if (error instanceof AppError_1.default) {
+                    throw error;
+                }
+                throw new AppError_1.default(500, "We couldn't send the verification email. Please try again.");
+            }
+        });
+    }
     registerUser(_a) {
         return __awaiter(this, arguments, void 0, function* ({ name, email, password, role, }) {
-            const existingUser = yield this.authRepository.findUserByEmail(email);
+            const normalizedEmail = this.normalizeEmail(email);
+            const existingUser = yield this.authRepository.findUserByEmail(normalizedEmail);
             if (existingUser) {
-                throw new AppError_1.default(400, "This email is already registered, please log in instead.");
+                if (existingUser.emailVerified) {
+                    throw new AppError_1.default(400, "This email is already registered, please log in instead.");
+                }
+                if (!existingUser.password) {
+                    throw new AppError_1.default(400, "This email is already linked to a social sign-in account.");
+                }
+                const verificationToken = this.createEmailVerificationToken();
+                yield this.authRepository.updateUserEmailVerification(existingUser.id, {
+                    emailVerificationToken: verificationToken.hashedToken,
+                    emailVerificationTokenExpiresAt: verificationToken.expiresAt,
+                    emailVerified: false,
+                });
+                yield this.sendVerificationEmail(normalizedEmail, verificationToken.code);
+                return {
+                    email: normalizedEmail,
+                    message: "Your account is waiting for verification. We sent a new verification code.",
+                    requiresEmailVerification: true,
+                };
             }
+            const verificationToken = this.createEmailVerificationToken();
             // Force new registrations to be USER role only for security
             const newUser = yield this.authRepository.createUser({
-                email,
+                email: normalizedEmail,
                 name,
                 password,
                 role: client_1.ROLE.USER, // Ignore any role passed from client for security
+                emailVerified: false,
+                emailVerificationToken: verificationToken.hashedToken,
+                emailVerificationTokenExpiresAt: verificationToken.expiresAt,
             });
-            const accessToken = authUtils_1.tokenUtils.generateAccessToken(newUser.id);
-            const refreshToken = authUtils_1.tokenUtils.generateRefreshToken(newUser.id);
+            yield this.sendVerificationEmail(newUser.email, verificationToken.code);
             return {
-                user: {
-                    id: newUser.id,
-                    name: newUser.name,
-                    email: newUser.email,
-                    role: newUser.role,
-                    avatar: null,
-                },
-                accessToken,
-                refreshToken,
+                email: newUser.email,
+                message: "Account created. Please verify your email to continue.",
+                requiresEmailVerification: true,
             };
         });
     }
     signin(_a) {
         return __awaiter(this, arguments, void 0, function* ({ email, password }) {
-            const user = yield this.authRepository.findUserByEmailWithPassword(email);
+            const normalizedEmail = this.normalizeEmail(email);
+            const user = yield this.authRepository.findUserByEmailWithPassword(normalizedEmail);
             if (!user) {
                 throw new BadRequestError_1.default("Email or password is incorrect.");
             }
             if (!user.password) {
                 throw new AppError_1.default(400, "Email or password is incorrect.");
+            }
+            if (!user.emailVerified) {
+                throw new AppError_1.default(403, "Please verify your email before signing in.");
             }
             const isPasswordValid = yield authUtils_1.passwordUtils.comparePassword(password, user.password);
             if (!isPasswordValid) {
@@ -73,6 +133,74 @@ class AuthService {
             return { accessToken, refreshToken, user };
         });
     }
+    verifyEmail(_a) {
+        return __awaiter(this, arguments, void 0, function* ({ email, emailVerificationToken, }) {
+            const normalizedEmail = this.normalizeEmail(email);
+            const user = yield this.authRepository.findUserByEmail(normalizedEmail);
+            if (!user) {
+                throw new NotFoundError_1.default("User");
+            }
+            if (user.emailVerified) {
+                throw new AppError_1.default(400, "Email is already verified. Please sign in.");
+            }
+            const hashedToken = crypto_1.default
+                .createHash("sha256")
+                .update(emailVerificationToken.trim())
+                .digest("hex");
+            if (!user.emailVerificationToken ||
+                !user.emailVerificationTokenExpiresAt ||
+                user.emailVerificationToken !== hashedToken ||
+                user.emailVerificationTokenExpiresAt < new Date()) {
+                throw new BadRequestError_1.default("Invalid or expired verification code.");
+            }
+            yield this.authRepository.updateUserEmailVerification(user.id, {
+                emailVerificationToken: null,
+                emailVerificationTokenExpiresAt: null,
+                emailVerified: true,
+            });
+            const accessToken = authUtils_1.tokenUtils.generateAccessToken(user.id);
+            const refreshToken = authUtils_1.tokenUtils.generateRefreshToken(user.id);
+            return {
+                user: {
+                    id: user.id,
+                    name: user.name,
+                    email: user.email,
+                    role: user.role,
+                    avatar: user.avatar,
+                    emailVerified: true,
+                },
+                accessToken,
+                refreshToken,
+            };
+        });
+    }
+    resendVerificationEmail(email) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const normalizedEmail = this.normalizeEmail(email);
+            const user = yield this.authRepository.findUserByEmail(normalizedEmail);
+            if (!user) {
+                throw new NotFoundError_1.default("User");
+            }
+            if (user.emailVerified) {
+                throw new AppError_1.default(400, "Email is already verified. Please sign in.");
+            }
+            if (!user.password) {
+                throw new AppError_1.default(400, "This email is already linked to a social sign-in account.");
+            }
+            const verificationToken = this.createEmailVerificationToken();
+            yield this.authRepository.updateUserEmailVerification(user.id, {
+                emailVerificationToken: verificationToken.hashedToken,
+                emailVerificationTokenExpiresAt: verificationToken.expiresAt,
+                emailVerified: false,
+            });
+            yield this.sendVerificationEmail(normalizedEmail, verificationToken.code);
+            return {
+                email: normalizedEmail,
+                message: "A new verification code has been sent to your email.",
+                requiresEmailVerification: true,
+            };
+        });
+    }
     signout() {
         return __awaiter(this, void 0, void 0, function* () {
             return { message: "User logged out successfully" };
@@ -80,7 +208,8 @@ class AuthService {
     }
     forgotPassword(email) {
         return __awaiter(this, void 0, void 0, function* () {
-            const user = yield this.authRepository.findUserByEmail(email);
+            const normalizedEmail = this.normalizeEmail(email);
+            const user = yield this.authRepository.findUserByEmail(normalizedEmail);
             if (!user) {
                 throw new NotFoundError_1.default("Email");
             }
@@ -89,18 +218,26 @@ class AuthService {
                 .createHash("sha256")
                 .update(resetToken)
                 .digest("hex");
-            yield this.authRepository.updateUserPasswordReset(email, {
+            yield this.authRepository.updateUserPasswordReset(normalizedEmail, {
                 resetPasswordToken: hashedToken,
                 resetPasswordTokenExpiresAt: new Date(Date.now() + 10 * 60 * 1000),
             });
-            const resetUrl = `${process.env.CLIENT_URL}/password-reset/${resetToken}`;
+            const resetUrl = `${this.getClientUrl()}/password-reset/${resetToken}`;
             const htmlTemplate = (0, passwordReset_1.default)(resetUrl);
-            yield (0, sendEmail_1.default)({
-                to: user.email,
-                subject: "Reset your password",
-                html: htmlTemplate,
-                text: "Reset your password",
-            });
+            try {
+                yield (0, sendEmail_1.default)({
+                    to: user.email,
+                    subject: "Reset your password",
+                    html: htmlTemplate,
+                    text: "Reset your password",
+                });
+            }
+            catch (error) {
+                if (error instanceof AppError_1.default) {
+                    throw error;
+                }
+                throw new AppError_1.default(500, "We couldn't send the password reset email. Please try again.");
+            }
             return { message: "Password reset email sent successfully" };
         });
     }

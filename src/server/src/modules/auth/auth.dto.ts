@@ -36,8 +36,16 @@ export class SigninDto {
 }
 
 export class VerifyEmailDto {
+  @IsEmail()
+  email!: string;
+
   @IsNotEmpty()
   emailVerificationToken!: string;
+}
+
+export class ResendVerificationEmailDto {
+  @IsEmail()
+  email!: string;
 }
 
 export class ForgotPasswordDto {
