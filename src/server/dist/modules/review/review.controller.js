@@ -30,7 +30,7 @@ class ReviewController {
                 comment,
             });
             (0, sendResponse_1.default)(res, 201, {
-                data: review,
+                data: { review },
                 message: "Review created successfully",
             });
             const start = Date.now();
@@ -48,7 +48,6 @@ class ReviewController {
                 page: Number(page),
                 limit: Number(limit),
             });
-            console.log("reviews result => ", result);
             (0, sendResponse_1.default)(res, 200, {
                 data: result,
                 message: "Reviews fetched successfully",
@@ -58,7 +57,8 @@ class ReviewController {
             var _a;
             const { id } = req.params;
             const userId = req.user.id;
-            const result = yield this.reviewService.deleteReview(id, userId);
+            const userRole = req.user.role;
+            const result = yield this.reviewService.deleteReview(id, userId, userRole);
             (0, sendResponse_1.default)(res, 200, result);
             const start = Date.now();
             const end = Date.now();

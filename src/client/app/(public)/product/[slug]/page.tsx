@@ -14,7 +14,7 @@ import { Product } from "@/app/types/productTypes";
 
 const ProductDetailsPage = () => {
   const { slug } = useParams();
-  const { data, loading, error } = useQuery<{ product: Product }>(
+  const { data, loading, error, refetch } = useQuery<{ product: Product }>(
     GET_SINGLE_PRODUCT,
     {
       variables: { slug: typeof slug === "string" ? slug : slug?.[0] || "" },
@@ -151,7 +151,11 @@ const ProductDetailsPage = () => {
         {/* Product Reviews */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100">
-            <ProductReviews reviews={product.reviews} productId={product.id} />
+            <ProductReviews
+              initialReviews={product.reviews}
+              productId={product.id}
+              onReviewsChanged={() => refetch()}
+            />
           </div>
         </div>
       </div>

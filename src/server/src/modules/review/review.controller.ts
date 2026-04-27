@@ -19,7 +19,7 @@ export class ReviewController {
     });
 
     sendResponse(res, 201, {
-      data: review,
+      data: { review },
       message: "Review created successfully",
     });
 
@@ -41,7 +41,6 @@ export class ReviewController {
       page: Number(page),
       limit: Number(limit),
     });
-    console.log("reviews result => ", result);
 
     sendResponse(res, 200, {
       data: result,
@@ -52,8 +51,9 @@ export class ReviewController {
   deleteReview = asyncHandler(async (req: Request, res: Response) => {
     const { id } = req.params;
     const userId = req.user!.id;
+    const userRole = req.user!.role;
 
-    const result = await this.reviewService.deleteReview(id, userId);
+    const result = await this.reviewService.deleteReview(id, userId, userRole);
 
     sendResponse(res, 200, result);
     const start = Date.now();

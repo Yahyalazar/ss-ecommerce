@@ -43,8 +43,13 @@ export interface Product {
     rating: number;
     comment: string | null;
     createdAt: string;
-    userId: string;
-    user?: { name: string };
+    userId?: string;
+    user?: {
+      id?: string;
+      name: string;
+      email?: string;
+      avatar?: string | null;
+    };
   }[];
 }
 export interface Order {

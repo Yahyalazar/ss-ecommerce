@@ -21,6 +21,7 @@ class ReviewService {
     }
     createReview(userId, data) {
         return __awaiter(this, void 0, void 0, function* () {
+            var _a;
             if (!Number.isInteger(data.rating) || data.rating < 1 || data.rating > 5) {
                 throw new AppError_1.default(400, "Rating must be an integer between 1 and 5");
             }
@@ -34,11 +35,12 @@ class ReviewService {
             if (existingReview) {
                 throw new AppError_1.default(400, "You have already reviewed this product");
             }
+            const normalizedComment = (_a = data.comment) === null || _a === void 0 ? void 0 : _a.trim();
             const review = yield this.reviewRepository.createReview({
                 userId,
                 productId: data.productId,
                 rating: data.rating,
-                comment: data.comment,
+                comment: normalizedComment ? normalizedComment : undefined,
             });
             yield this.reviewRepository.updateProductRating(data.productId);
             return review;
@@ -64,11 +66,17 @@ class ReviewService {
             };
         });
     }
-    deleteReview(id, userId) {
+    deleteReview(id, userId, userRole) {
         return __awaiter(this, void 0, void 0, function* () {
             const review = yield this.reviewRepository.findReviewById(id);
             if (!review) {
                 throw new AppError_1.default(404, "Review not found");
+            }
+            const canDeleteReview = review.userId === userId ||
+                userRole === "ADMIN" ||
+                userRole === "SUPERADMIN";
+            if (!canDeleteReview) {
+                throw new AppError_1.default(403, "You are not authorized to delete this review");
             }
             yield this.reviewRepository.deleteReview(id);
             yield this.reviewRepository.updateProductRating(review.productId);

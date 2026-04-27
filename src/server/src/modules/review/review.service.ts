@@ -29,11 +29,13 @@ export class ReviewService {
       throw new AppError(400, "You have already reviewed this product");
     }
 
+    const normalizedComment = data.comment?.trim();
+
     const review = await this.reviewRepository.createReview({
       userId,
       productId: data.productId,
       rating: data.rating,
-      comment: data.comment,
+      comment: normalizedComment ? normalizedComment : undefined,
     });
 
     await this.reviewRepository.updateProductRating(data.productId);
@@ -68,10 +70,22 @@ export class ReviewService {
     };
   }
 
-  async deleteReview(id: string, userId: string) {
+  async deleteReview(id: string, userId: string, userRole: string) {
     const review = await this.reviewRepository.findReviewById(id);
     if (!review) {
       throw new AppError(404, "Review not found");
+    }
+
+    const canDeleteReview =
+      review.userId === userId ||
+      userRole === "ADMIN" ||
+      userRole === "SUPERADMIN";
+
+    if (!canDeleteReview) {
+      throw new AppError(
+        403,
+        "You are not authorized to delete this review"
+      );
     }
 
     await this.reviewRepository.deleteReview(id);

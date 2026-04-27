@@ -970,3 +970,4 @@ The column `User.newsletterSubscribed` does not exist in the current database.
 [2026-04-26T23:46:56.105Z] [31MERROR[39M: Refresh token not found
 [2026-04-27T00:03:07.997Z] [31MERROR[39M: Invalid access token, please log in
 [2026-04-27T00:03:13.139Z] [31MERROR[39M: Failed to upload profile image
+[2026-04-27T00:37:18.498Z] [31MERROR[39M: Invalid access token, please log in
