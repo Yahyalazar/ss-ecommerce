@@ -32,17 +32,7 @@ export const initializeApollo = (initialState = null) => {
   // Create or reuse Apollo Client instance
   const client = new ApolloClient({
     link: from([errorLink, httpLink]),
-    cache: new InMemoryCache({
-      typePolicies: {
-        Product: {
-          fields: {
-            variants: {
-              merge: true,
-            },
-          },
-        },
-      },
-    }).restore(initialState || {}),
+    cache: new InMemoryCache().restore(initialState || {}),
   });
 
   return client;

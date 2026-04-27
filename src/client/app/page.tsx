@@ -1,24 +1,13 @@
 "use client";
-import dynamic from "next/dynamic";
 import { useQuery } from "@apollo/client";
 import { GET_PRODUCTS_SUMMARY } from "./gql/Product";
 import { useMemo } from "react";
 import groupProductsByFlag from "./utils/groupProductsByFlag";
 import SkeletonLoader from "./components/feedback/SkeletonLoader";
-
-const HeroSection = dynamic(() => import("./(public)/(home)/HeroSection"), {
-  ssr: false,
-});
-const CategoryBar = dynamic(() => import("./(public)/(home)/CategoryBar"), {
-  ssr: false,
-});
-const ProductSection = dynamic(
-  () => import("./(public)/product/ProductSection"),
-  { ssr: false }
-);
-const MainLayout = dynamic(() => import("./components/templates/MainLayout"), {
-  ssr: false,
-});
+import HeroSection from "./(public)/(home)/HeroSection";
+import CategoryBar from "./(public)/(home)/CategoryBar";
+import ProductSection from "./(public)/product/ProductSection";
+import MainLayout from "./components/templates/MainLayout";
 
 const Home = () => {
   const { data, loading, error } = useQuery(GET_PRODUCTS_SUMMARY, {

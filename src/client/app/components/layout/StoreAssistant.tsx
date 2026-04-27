@@ -1,6 +1,6 @@
 "use client";
 
-import { useLazyQuery } from "@apollo/client";
+import { useApolloClient, useLazyQuery } from "@apollo/client";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   Bot,
@@ -35,6 +35,20 @@ interface CategoriesQueryResult {
   categories: AssistantCatalogCategory[];
 }
 
+interface AssistantProductFilters {
+  search?: string;
+  isNew?: boolean;
+  isFeatured?: boolean;
+  isTrending?: boolean;
+  isBestSeller?: boolean;
+  minPrice?: number;
+  maxPrice?: number;
+  categoryId?: string;
+  color?: string;
+  gender?: string;
+  flags?: string[];
+}
+
 interface ConversationMessage {
   id: string;
   role: "assistant" | "user";
@@ -42,6 +56,8 @@ interface ConversationMessage {
   actions?: AssistantAction[];
   products?: AssistantRecommendation[];
 }
+
+const ASSISTANT_CATALOG_PAGE_SIZE = 100;
 
 const HIDDEN_ROUTE_PREFIXES = [
   "/dashboard",
@@ -173,7 +189,32 @@ const resolveAssistantAction = (action: AssistantAction): AssistantAction => {
   return action;
 };
 
+const getProductFiltersForPrompt = (
+  prompt: string
+): AssistantProductFilters | undefined => {
+  const normalizedPrompt = prompt.trim().toLowerCase();
+
+  if (/\b(new|new arrivals|latest)\b/.test(normalizedPrompt)) {
+    return { isNew: true };
+  }
+
+  if (/\b(trending|popular|hot right now)\b/.test(normalizedPrompt)) {
+    return { isTrending: true };
+  }
+
+  if (/\b(best seller|best sellers|bestseller)\b/.test(normalizedPrompt)) {
+    return { isBestSeller: true };
+  }
+
+  if (/\b(featured|top picks|recommended)\b/.test(normalizedPrompt)) {
+    return { isFeatured: true };
+  }
+
+  return undefined;
+};
+
 const StoreAssistant = () => {
+  const apolloClient = useApolloClient();
   const router = useRouter();
   const pathname = usePathname();
   const formatPrice = useFormatPrice();
@@ -248,7 +289,7 @@ const StoreAssistant = () => {
         await Promise.all([
           loadProducts({
             variables: {
-              first: 36,
+              first: ASSISTANT_CATALOG_PAGE_SIZE,
               skip: 0,
               filters: {},
             },
@@ -263,16 +304,41 @@ const StoreAssistant = () => {
     void preloadCatalog();
   }, [catalogReady, isOpen, loadCategories, loadProducts]);
 
-  const ensureCatalogLoaded = async () => {
-    const productsPromise = productsResult.data?.products?.products
-      ? Promise.resolve(productsResult.data.products.products)
-      : loadProducts({
-          variables: {
-            first: 36,
-            skip: 0,
-            filters: {},
-          },
-        }).then((result) => result.data?.products?.products || []);
+  const fetchCatalogProducts = async () => {
+    const result = await loadProducts({
+      variables: {
+        first: ASSISTANT_CATALOG_PAGE_SIZE,
+        skip: 0,
+        filters: {},
+      },
+    });
+
+    return result.data?.products?.products || [];
+  };
+
+  const fetchFilteredCatalogProducts = async (
+    filters: AssistantProductFilters
+  ) => {
+    const result = await apolloClient.query<ProductsQueryResult>({
+      query: GET_PRODUCTS,
+      variables: {
+        first: ASSISTANT_CATALOG_PAGE_SIZE,
+        skip: 0,
+        filters,
+      },
+      fetchPolicy: "network-only",
+    });
+
+    return result.data?.products?.products || [];
+  };
+
+  const ensureCatalogLoaded = async (productFilters?: AssistantProductFilters) => {
+    const productsPromise =
+      productFilters && Object.keys(productFilters).length > 0
+        ? fetchFilteredCatalogProducts(productFilters)
+        : productsResult.data?.products?.products
+        ? Promise.resolve(productsResult.data.products.products)
+        : fetchCatalogProducts();
 
     const categoriesPromise = categoriesResult.data?.categories
       ? Promise.resolve(categoriesResult.data.categories)
@@ -309,9 +375,15 @@ const StoreAssistant = () => {
     setIsTyping(true);
 
     try {
-      const needsCatalog = action.intent === "trending" || action.intent === "new-arrivals";
+      const productFilters =
+        action.intent === "trending"
+          ? { isTrending: true }
+          : action.intent === "new-arrivals"
+          ? { isNew: true }
+          : undefined;
+      const needsCatalog = Boolean(productFilters);
       const catalog = needsCatalog
-        ? await ensureCatalogLoaded()
+        ? await ensureCatalogLoaded(productFilters)
         : { products: [], categories: [] };
 
       await new Promise((resolve) => window.setTimeout(resolve, 350));
@@ -417,7 +489,9 @@ const StoreAssistant = () => {
     setIsTyping(true);
 
     try {
-      const { products, categories } = await ensureCatalogLoaded();
+      const { products, categories } = await ensureCatalogLoaded(
+        getProductFiltersForPrompt(trimmedPrompt)
+      );
       await new Promise((resolve) => window.setTimeout(resolve, 350));
 
       const reply = buildAssistantReply({
