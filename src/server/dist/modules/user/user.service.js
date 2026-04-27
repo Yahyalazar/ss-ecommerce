@@ -13,12 +13,36 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.UserService = void 0;
+const crypto_1 = __importDefault(require("crypto"));
 const AppError_1 = __importDefault(require("@/shared/errors/AppError"));
 const sendEmail_1 = __importDefault(require("@/shared/utils/sendEmail"));
 const newsletter_1 = __importDefault(require("@/shared/templates/newsletter"));
+const emailVerification_1 = __importDefault(require("@/shared/templates/emailVerification"));
 class UserService {
     constructor(userRepository) {
         this.userRepository = userRepository;
+    }
+    normalizeEmail(email) {
+        return email.trim().toLowerCase();
+    }
+    createEmailVerificationToken() {
+        const code = Math.floor(100000 + Math.random() * 900000).toString();
+        const hashedToken = crypto_1.default.createHash("sha256").update(code).digest("hex");
+        return {
+            code,
+            hashedToken,
+            expiresAt: new Date(Date.now() + 10 * 60 * 1000),
+        };
+    }
+    sendVerificationEmail(email, code) {
+        return __awaiter(this, void 0, void 0, function* () {
+            yield (0, sendEmail_1.default)({
+                to: email,
+                subject: "Verify your email address",
+                html: (0, emailVerification_1.default)(code),
+                text: `Your verification code is ${code}`,
+            });
+        });
     }
     getAllUsers() {
         return __awaiter(this, void 0, void 0, function* () {
@@ -58,7 +82,57 @@ class UserService {
             if (!user) {
                 throw new AppError_1.default(404, "User not found");
             }
-            return yield this.userRepository.updateUser(id, data);
+            const updatePayload = {};
+            if (data.name !== undefined) {
+                const trimmedName = data.name.trim();
+                if (trimmedName.length < 2) {
+                    throw new AppError_1.default(400, "Name must be at least 2 characters long");
+                }
+                updatePayload.name = trimmedName;
+            }
+            let verificationCode;
+            if (data.email !== undefined) {
+                const normalizedEmail = this.normalizeEmail(data.email);
+                const isValidEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail);
+                if (!isValidEmail) {
+                    throw new AppError_1.default(400, "Invalid email format");
+                }
+                if (normalizedEmail !== user.email) {
+                    const existingUser = yield this.userRepository.findUserByEmail(normalizedEmail);
+                    if (existingUser && existingUser.id !== user.id) {
+                        throw new AppError_1.default(400, "User with this email already exists");
+                    }
+                    const verificationToken = this.createEmailVerificationToken();
+                    verificationCode = verificationToken.code;
+                    updatePayload.email = normalizedEmail;
+                    updatePayload.emailVerified = false;
+                    updatePayload.emailVerificationToken = verificationToken.hashedToken;
+                    updatePayload.emailVerificationTokenExpiresAt =
+                        verificationToken.expiresAt;
+                }
+                else {
+                    updatePayload.email = normalizedEmail;
+                }
+            }
+            if (data.avatar !== undefined) {
+                updatePayload.avatar = data.avatar;
+            }
+            if (data.newsletterSubscribed !== undefined) {
+                updatePayload.newsletterSubscribed = data.newsletterSubscribed;
+            }
+            if (Object.keys(updatePayload).length === 0) {
+                throw new AppError_1.default(400, "No profile changes were provided");
+            }
+            const updatedUser = yield this.userRepository.updateUser(id, updatePayload);
+            if (verificationCode && updatePayload.email) {
+                try {
+                    yield this.sendVerificationEmail(updatePayload.email, verificationCode);
+                }
+                catch (error) {
+                    console.error("Failed to send verification email after profile update:", error);
+                }
+            }
+            return updatedUser;
         });
     }
     updateNewsletterPreference(id, newsletterSubscribed) {

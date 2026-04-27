@@ -17,6 +17,7 @@ const asyncHandler_1 = __importDefault(require("@/shared/utils/asyncHandler"));
 const sendResponse_1 = __importDefault(require("@/shared/utils/sendResponse"));
 const logs_factory_1 = require("../logs/logs.factory");
 const AppError_1 = __importDefault(require("@/shared/errors/AppError"));
+const uploadToCloudinary_1 = require("@/shared/utils/uploadToCloudinary");
 class UserController {
     constructor(userService) {
         this.userService = userService;
@@ -51,6 +52,42 @@ class UserController {
             (0, sendResponse_1.default)(res, 200, {
                 data: { user },
                 message: "User fetched successfully",
+            });
+        }));
+        this.updateCurrentUser = (0, asyncHandler_1.default)((req, res) => __awaiter(this, void 0, void 0, function* () {
+            var _a;
+            const currentUserId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id;
+            if (!currentUserId) {
+                throw new AppError_1.default(401, "User not authenticated");
+            }
+            const file = req.file;
+            let avatar;
+            if (file) {
+                try {
+                    const [uploadedAvatar] = yield (0, uploadToCloudinary_1.uploadToCloudinary)([file], {
+                        folder: "user_avatars",
+                        throwOnAllFailed: true,
+                    });
+                    if (!(uploadedAvatar === null || uploadedAvatar === void 0 ? void 0 : uploadedAvatar.url)) {
+                        throw new AppError_1.default(400, "Failed to upload profile image");
+                    }
+                    avatar = uploadedAvatar.url;
+                }
+                catch (error) {
+                    if ((0, uploadToCloudinary_1.isCloudinaryTimeoutError)(error)) {
+                        throw new AppError_1.default(504, "Profile image upload timed out. Please try again or use a smaller image.");
+                    }
+                    throw new AppError_1.default(400, "Failed to upload profile image");
+                }
+            }
+            const user = yield this.userService.updateMe(currentUserId, Object.assign({ name: req.body.name, email: req.body.email }, (avatar && { avatar })));
+            (0, sendResponse_1.default)(res, 200, {
+                data: { user },
+                message: "Profile updated successfully",
+            });
+            this.logsService.info("Profile updated", {
+                userId: currentUserId,
+                sessionId: req.session.id,
             });
         }));
         this.updateMe = (0, asyncHandler_1.default)((req, res) => __awaiter(this, void 0, void 0, function* () {

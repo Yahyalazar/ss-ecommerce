@@ -9,17 +9,42 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.uploadToCloudinary = void 0;
+exports.uploadToCloudinary = exports.isCloudinaryTimeoutError = void 0;
 const cloudinary_1 = require("cloudinary");
-const uploadToCloudinary = (files) => __awaiter(void 0, void 0, void 0, function* () {
+const DEFAULT_CLOUDINARY_UPLOAD_TIMEOUT_MS = Number(process.env.CLOUDINARY_UPLOAD_TIMEOUT_MS || 180000);
+const resolveUploadTimeout = (timeoutMs) => {
+    if (typeof timeoutMs === "number" &&
+        Number.isFinite(timeoutMs) &&
+        timeoutMs > 0) {
+        return timeoutMs;
+    }
+    if (Number.isFinite(DEFAULT_CLOUDINARY_UPLOAD_TIMEOUT_MS) &&
+        DEFAULT_CLOUDINARY_UPLOAD_TIMEOUT_MS > 0) {
+        return DEFAULT_CLOUDINARY_UPLOAD_TIMEOUT_MS;
+    }
+    return 180000;
+};
+const isCloudinaryTimeoutError = (error) => {
+    if (!error || typeof error !== "object") {
+        return false;
+    }
+    const timeoutError = error;
+    return (timeoutError.name === "TimeoutError" || timeoutError.http_code === 499);
+};
+exports.isCloudinaryTimeoutError = isCloudinaryTimeoutError;
+const uploadToCloudinary = (files_1, ...args_1) => __awaiter(void 0, [files_1, ...args_1], void 0, function* (files, options = {}) {
     try {
+        const timeout = resolveUploadTimeout(options.timeoutMs);
         const uploadPromises = files.map((file) => new Promise((resolve, reject) => {
             cloudinary_1.v2.uploader
                 .upload_stream({
+                disable_promises: true,
                 resource_type: "image",
                 fetch_format: "webp",
                 quality: "auto",
                 flags: "progressive",
+                folder: options.folder,
+                timeout,
             }, (error, result) => {
                 if (error)
                     return reject(error);
@@ -40,10 +65,18 @@ const uploadToCloudinary = (files) => __awaiter(void 0, void 0, void 0, function
         const successfulUploads = results
             .filter((result) => result.status === "fulfilled")
             .map((result) => result.value);
+        if (options.throwOnAllFailed &&
+            successfulUploads.length === 0 &&
+            failedUploads.length > 0) {
+            throw failedUploads[0].reason;
+        }
         return successfulUploads;
     }
     catch (error) {
         console.error("Error uploading to Cloudinary:", error);
+        if (options.throwOnAllFailed) {
+            throw error;
+        }
         return [];
     }
 });

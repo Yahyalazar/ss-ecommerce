@@ -4,6 +4,10 @@ import asyncHandler from "@/shared/utils/asyncHandler";
 import sendResponse from "@/shared/utils/sendResponse";
 import { makeLogsService } from "../logs/logs.factory";
 import AppError from "@/shared/errors/AppError";
+import {
+  isCloudinaryTimeoutError,
+  uploadToCloudinary,
+} from "@/shared/utils/uploadToCloudinary";
 
 export class UserController {
   private logsService = makeLogsService();
@@ -49,6 +53,59 @@ export class UserController {
       message: "User fetched successfully",
     });
   });
+
+  updateCurrentUser = asyncHandler(
+    async (req: Request, res: Response): Promise<void> => {
+      const currentUserId = req.user?.id;
+
+      if (!currentUserId) {
+        throw new AppError(401, "User not authenticated");
+      }
+
+      const file = req.file;
+      let avatar: string | undefined;
+
+      if (file) {
+        try {
+          const [uploadedAvatar] = await uploadToCloudinary([file], {
+            folder: "user_avatars",
+            throwOnAllFailed: true,
+          });
+
+          if (!uploadedAvatar?.url) {
+            throw new AppError(400, "Failed to upload profile image");
+          }
+
+          avatar = uploadedAvatar.url;
+        } catch (error) {
+          if (isCloudinaryTimeoutError(error)) {
+            throw new AppError(
+              504,
+              "Profile image upload timed out. Please try again or use a smaller image."
+            );
+          }
+
+          throw new AppError(400, "Failed to upload profile image");
+        }
+      }
+
+      const user = await this.userService.updateMe(currentUserId, {
+        name: req.body.name,
+        email: req.body.email,
+        ...(avatar && { avatar }),
+      });
+
+      sendResponse(res, 200, {
+        data: { user },
+        message: "Profile updated successfully",
+      });
+
+      this.logsService.info("Profile updated", {
+        userId: currentUserId,
+        sessionId: req.session.id,
+      });
+    }
+  );
 
   updateMe = asyncHandler(
     async (req: Request, res: Response): Promise<void> => {

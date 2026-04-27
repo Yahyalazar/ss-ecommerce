@@ -2,6 +2,11 @@ import { ChatRepository } from "./chat.repository";
 import { Chat, ChatMessage } from "@prisma/client";
 import { Server as SocketIOServer } from "socket.io";
 import { v2 as cloudinary } from "cloudinary";
+import { isCloudinaryTimeoutError } from "@/shared/utils/uploadToCloudinary";
+
+const DEFAULT_CLOUDINARY_UPLOAD_TIMEOUT_MS = Number(
+  process.env.CLOUDINARY_UPLOAD_TIMEOUT_MS || 180000
+);
 
 export class ChatService {
   constructor(
@@ -59,8 +64,14 @@ export class ChatService {
         const uploadResult = await new Promise<any>((resolve, reject) => {
           const uploadStream = cloudinary.uploader.upload_stream(
             {
+              disable_promises: true,
               resource_type: isImageUpload ? "image" : "video",
               folder: "chat_media",
+              timeout:
+                Number.isFinite(DEFAULT_CLOUDINARY_UPLOAD_TIMEOUT_MS) &&
+                DEFAULT_CLOUDINARY_UPLOAD_TIMEOUT_MS > 0
+                  ? DEFAULT_CLOUDINARY_UPLOAD_TIMEOUT_MS
+                  : 180000,
             },
             (error, result) => {
               if (error) reject(error);
@@ -76,6 +87,11 @@ export class ChatService {
         url = uploadResult.secure_url;
       } catch (error) {
         console.error("Cloudinary upload failed:", error);
+        if (isCloudinaryTimeoutError(error)) {
+          throw new Error(
+            "File upload timed out. Please try again or use a smaller file."
+          );
+        }
         throw new Error("Failed to upload file");
       }
     }

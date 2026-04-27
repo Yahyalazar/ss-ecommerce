@@ -9,6 +9,7 @@ const protect_1 = __importDefault(require("@/shared/middlewares/protect"));
 const authorizeRole_1 = __importDefault(require("@/shared/middlewares/authorizeRole"));
 const authorizeRoleHierarchy_1 = __importDefault(require("@/shared/middlewares/authorizeRoleHierarchy"));
 const validateDto_1 = require("@/shared/middlewares/validateDto");
+const upload_1 = __importDefault(require("@/shared/middlewares/upload"));
 const user_dto_1 = require("./user.dto");
 const router = (0, express_1.Router)();
 const userController = (0, user_factory_1.makeUserController)();
@@ -27,6 +28,7 @@ const userController = (0, user_factory_1.makeUserController)();
  *         description: Unauthorized. Token is invalid or missing.
  */
 router.get("/me", protect_1.default, userController.getMe);
+router.patch("/me", protect_1.default, upload_1.default.single("avatar"), userController.updateCurrentUser);
 router.patch("/me/newsletter", protect_1.default, (0, validateDto_1.validateDto)(user_dto_1.UpdateNewsletterPreferenceDto), userController.updateNewsletterPreference);
 /**
  * @swagger

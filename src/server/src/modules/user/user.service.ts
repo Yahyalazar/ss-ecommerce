@@ -1,10 +1,36 @@
+import crypto from "crypto";
 import AppError from "@/shared/errors/AppError";
 import { UserRepository } from "./user.repository";
 import sendEmail from "@/shared/utils/sendEmail";
 import newsletterTemplate from "@/shared/templates/newsletter";
+import emailVerificationTemplate from "@/shared/templates/emailVerification";
 
 export class UserService {
   constructor(private userRepository: UserRepository) {}
+
+  private normalizeEmail(email: string) {
+    return email.trim().toLowerCase();
+  }
+
+  private createEmailVerificationToken() {
+    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    const hashedToken = crypto.createHash("sha256").update(code).digest("hex");
+
+    return {
+      code,
+      hashedToken,
+      expiresAt: new Date(Date.now() + 10 * 60 * 1000),
+    };
+  }
+
+  private async sendVerificationEmail(email: string, code: string) {
+    await sendEmail({
+      to: email,
+      subject: "Verify your email address",
+      html: emailVerificationTemplate(code),
+      text: `Your verification code is ${code}`,
+    });
+  }
 
   async getAllUsers() {
     return await this.userRepository.findAllUsers();
@@ -47,7 +73,85 @@ export class UserService {
     if (!user) {
       throw new AppError(404, "User not found");
     }
-    return await this.userRepository.updateUser(id, data);
+
+    const updatePayload: Partial<{
+      name?: string;
+      email?: string;
+      avatar?: string;
+      newsletterSubscribed?: boolean;
+      emailVerified?: boolean;
+      emailVerificationToken?: string | null;
+      emailVerificationTokenExpiresAt?: Date | null;
+    }> = {};
+
+    if (data.name !== undefined) {
+      const trimmedName = data.name.trim();
+
+      if (trimmedName.length < 2) {
+        throw new AppError(400, "Name must be at least 2 characters long");
+      }
+
+      updatePayload.name = trimmedName;
+    }
+
+    let verificationCode: string | undefined;
+
+    if (data.email !== undefined) {
+      const normalizedEmail = this.normalizeEmail(data.email);
+      const isValidEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail);
+
+      if (!isValidEmail) {
+        throw new AppError(400, "Invalid email format");
+      }
+
+      if (normalizedEmail !== user.email) {
+        const existingUser = await this.userRepository.findUserByEmail(
+          normalizedEmail
+        );
+
+        if (existingUser && existingUser.id !== user.id) {
+          throw new AppError(400, "User with this email already exists");
+        }
+
+        const verificationToken = this.createEmailVerificationToken();
+        verificationCode = verificationToken.code;
+
+        updatePayload.email = normalizedEmail;
+        updatePayload.emailVerified = false;
+        updatePayload.emailVerificationToken = verificationToken.hashedToken;
+        updatePayload.emailVerificationTokenExpiresAt =
+          verificationToken.expiresAt;
+      } else {
+        updatePayload.email = normalizedEmail;
+      }
+    }
+
+    if (data.avatar !== undefined) {
+      updatePayload.avatar = data.avatar;
+    }
+
+    if (data.newsletterSubscribed !== undefined) {
+      updatePayload.newsletterSubscribed = data.newsletterSubscribed;
+    }
+
+    if (Object.keys(updatePayload).length === 0) {
+      throw new AppError(400, "No profile changes were provided");
+    }
+
+    const updatedUser = await this.userRepository.updateUser(id, updatePayload);
+
+    if (verificationCode && updatePayload.email) {
+      try {
+        await this.sendVerificationEmail(updatePayload.email, verificationCode);
+      } catch (error) {
+        console.error(
+          "Failed to send verification email after profile update:",
+          error
+        );
+      }
+    }
+
+    return updatedUser;
   }
 
   async updateNewsletterPreference(id: string, newsletterSubscribed: boolean) {

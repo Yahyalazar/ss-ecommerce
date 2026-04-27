@@ -1,7 +1,8 @@
 import { User } from "@/app/types/authTypes";
 import { apiSlice } from "../slices/ApiSlice";
+import { setUser } from "../slices/AuthSlice";
 
-interface GetMeResponse {
+interface UserResponse {
   success: boolean;
   message: string;
   user: User;
@@ -36,15 +37,37 @@ export const userApi = apiSlice.injectEndpoints({
       }),
       invalidatesTags: ["User"],
     }),
-    getMe: builder.query<GetMeResponse, void>({
+    getMe: builder.query<UserResponse, void>({
       query: () => ({
         url: "/users/me",
         method: "GET",
       }),
       providesTags: ["User"],
     }),
+    updateCurrentUser: builder.mutation<UserResponse, FormData>({
+      query: (data) => ({
+        url: "/users/me",
+        method: "PATCH",
+        body: data,
+      }),
+      invalidatesTags: ["User"],
+      onQueryStarted: async (_, { dispatch, queryFulfilled }) => {
+        try {
+          const { data } = await queryFulfilled;
+          dispatch(setUser({ user: data.user }));
+          dispatch(
+            userApi.util.updateQueryData("getMe", undefined, (draft) => {
+              draft.user = data.user;
+              draft.message = data.message;
+            })
+          );
+        } catch {
+          // Let the page handle mutation errors.
+        }
+      },
+    }),
     updateNewsletterPreference: builder.mutation<
-      GetMeResponse,
+      UserResponse,
       { newsletterSubscribed: boolean }
     >({
       query: (data) => ({
@@ -53,6 +76,20 @@ export const userApi = apiSlice.injectEndpoints({
         body: data,
       }),
       invalidatesTags: ["User"],
+      onQueryStarted: async (_, { dispatch, queryFulfilled }) => {
+        try {
+          const { data } = await queryFulfilled;
+          dispatch(setUser({ user: data.user }));
+          dispatch(
+            userApi.util.updateQueryData("getMe", undefined, (draft) => {
+              draft.user = data.user;
+              draft.message = data.message;
+            })
+          );
+        } catch {
+          // Let the page handle mutation errors.
+        }
+      },
     }),
     sendNewsletter: builder.mutation<
       {
@@ -99,6 +136,7 @@ export const {
   useGetMeQuery,
   useGetAllUsersQuery,
   useLazyGetMeQuery,
+  useUpdateCurrentUserMutation,
   useSendNewsletterMutation,
   useUpdateNewsletterPreferenceMutation,
 } = userApi;

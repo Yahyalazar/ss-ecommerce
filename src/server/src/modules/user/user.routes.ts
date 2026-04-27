@@ -4,6 +4,7 @@ import protect from "@/shared/middlewares/protect";
 import authorizeRole from "@/shared/middlewares/authorizeRole";
 import authorizeRoleHierarchy from "@/shared/middlewares/authorizeRoleHierarchy";
 import { validateDto } from "@/shared/middlewares/validateDto";
+import upload from "@/shared/middlewares/upload";
 import {
   CreateAdminDto,
   SendNewsletterDto,
@@ -31,6 +32,8 @@ const userController = makeUserController();
  *         description: Unauthorized. Token is invalid or missing.
  */
 router.get("/me", protect, userController.getMe);
+
+router.patch("/me", protect, upload.single("avatar"), userController.updateCurrentUser);
 
 router.patch(
   "/me/newsletter",
