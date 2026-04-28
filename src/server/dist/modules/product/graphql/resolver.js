@@ -98,6 +98,9 @@ exports.productResolvers = {
                 where,
                 take: first,
                 skip,
+                orderBy: {
+                    createdAt: "desc",
+                },
                 include: {
                     category: true,
                     variants: true,
@@ -141,6 +144,9 @@ exports.productResolvers = {
                 where: { isNew: true },
                 take: first,
                 skip,
+                orderBy: {
+                    createdAt: "desc",
+                },
                 include: {
                     category: true,
                     variants: true,
@@ -161,6 +167,9 @@ exports.productResolvers = {
                 where: { isFeatured: true },
                 take: first,
                 skip,
+                orderBy: {
+                    createdAt: "desc",
+                },
                 include: {
                     category: true,
                     variants: true,
@@ -181,6 +190,9 @@ exports.productResolvers = {
                 where: { isTrending: true },
                 take: first,
                 skip,
+                orderBy: {
+                    createdAt: "desc",
+                },
                 include: {
                     category: true,
                     variants: true,
@@ -201,6 +213,9 @@ exports.productResolvers = {
                 where: { isBestSeller: true },
                 take: first,
                 skip,
+                orderBy: {
+                    createdAt: "desc",
+                },
                 include: {
                     category: true,
                     variants: true,

@@ -1,13 +1,15 @@
 "use client";
 import React, { useState } from "react";
+import Image from "next/image";
 import {
   useGetAllCategoriesQuery,
   useCreateCategoryMutation,
   useDeleteCategoryMutation,
+  useUpdateCategoryMutation,
 } from "@/app/store/apis/CategoryApi";
 import Table from "@/app/components/layout/Table";
 import { motion } from "framer-motion";
-import { Tag, Trash2, Plus } from "lucide-react";
+import { Tag, Trash2, Plus, Pencil } from "lucide-react";
 import { useForm } from "react-hook-form";
 import Modal from "@/app/components/organisms/Modal";
 import ConfirmModal from "@/app/components/organisms/ConfirmModal";
@@ -20,52 +22,41 @@ const CategoriesDashboard = () => {
   const { data, isLoading, error } = useGetAllCategoriesQuery({});
   const [createCategory, { isLoading: isCreating }] =
     useCreateCategoryMutation();
+  const [updateCategory, { isLoading: isUpdating }] =
+    useUpdateCategoryMutation();
   const [deleteCategory, { isLoading: isDeleting }] =
     useDeleteCategoryMutation();
   const categories = data?.categories || [];
 
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
   const [categoryToDelete, setCategoryToDelete] = useState<string | null>(null);
+  const [editingCategory, setEditingCategory] =
+    useState<CategoryFormData | null>(null);
 
   const form = useForm<CategoryFormData>({
     defaultValues: { name: "", description: "", images: [] },
   });
 
-  const columns = [
-    {
-      key: "name",
-      label: "Name",
-      sortable: true,
-      render: (row) => (
-        <span className="font-medium text-gray-800">{row?.name || "N/A"}</span>
-      ),
-    },
-    {
-      key: "description",
-      label: "Description",
-      sortable: true,
-      render: (row) => (
-        <span className="font-medium text-gray-800">{row?.name || "N/A"}</span>
-      ),
-    },
-    {
-      key: "actions",
-      label: "Actions",
-      render: (row) => (
-        <div className="flex space-x-2">
-          <button
-            onClick={() => handleDeletePrompt(row?.id)}
-            className="p-1 text-red-500 hover:text-red-600 transition-colors duration-200"
-            aria-label="Delete category"
-            disabled={isDeleting}
-          >
-            <Trash2 size={18} />
-          </button>
-        </div>
-      ),
-    },
-  ];
+  const resetCategoryModal = () => {
+    setIsCategoryModalOpen(false);
+    setEditingCategory(null);
+    form.reset({ name: "", description: "", images: [] });
+  };
+
+  const handleEditCategory = (category: any) => {
+    const initialData: CategoryFormData = {
+      id: category.id,
+      name: category.name || "",
+      description: category.description || "",
+      images: Array.isArray(category.images) ? category.images : [],
+      slug: category.slug,
+    };
+
+    setEditingCategory(initialData);
+    form.reset(initialData);
+    setIsCategoryModalOpen(true);
+  };
 
   const handleDeletePrompt = (id: string) => {
     if (!id) return;
@@ -92,33 +83,99 @@ const CategoriesDashboard = () => {
     payload.append("name", formData.name || "");
     payload.append("description", formData.description || "");
 
-    if (formData.images && Array.isArray(formData.images)) {
-      formData.images.forEach((file: any) => {
-        if (file instanceof File) {
-          payload.append("images", file);
-        }
-      });
-    }
+    const existingImages = (formData.images || []).filter(
+      (image): image is string => typeof image === "string"
+    );
+    const newImages = (formData.images || []).filter(
+      (image): image is File => image instanceof File
+    );
 
-    console.log("FormData payload:");
-    for (const [key, value] of payload.entries()) {
-      console.log(`${key}: ${value instanceof File ? value.name : value}`);
-    }
+    payload.append("existingImages", JSON.stringify(existingImages));
+    newImages.forEach((file) => {
+      payload.append("images", file);
+    });
 
     try {
-      await createCategory(payload).unwrap();
-      setIsCreateModalOpen(false);
-      form.reset({ name: "" });
-      showToast("Category created successfully", "success");
+      if (editingCategory?.id) {
+        await updateCategory({
+          id: editingCategory.id,
+          categoryData: payload,
+        }).unwrap();
+        showToast("Category updated successfully", "success");
+      } else {
+        await createCategory(payload).unwrap();
+        showToast("Category created successfully", "success");
+      }
+
+      resetCategoryModal();
     } catch (err) {
-      console.error("Failed to create category:", err);
-      showToast("Failed to create category", "error");
+      console.error("Failed to save category:", err);
+      showToast("Failed to save category", "error");
     }
   };
 
+  const columns = [
+    {
+      key: "name",
+      label: "Name",
+      sortable: true,
+      render: (row: any) => (
+        <span className="font-medium text-gray-800">{row?.name || "N/A"}</span>
+      ),
+    },
+    {
+      key: "description",
+      label: "Description",
+      sortable: true,
+      render: (row: any) => (
+        <span className="font-medium text-gray-800">
+          {row?.description || "No description"}
+        </span>
+      ),
+    },
+    {
+      key: "images",
+      label: "Image",
+      render: (row: any) =>
+        row?.images?.[0] ? (
+          <Image
+            src={row.images[0]}
+            alt={row.name}
+            width={48}
+            height={48}
+            className="h-12 w-12 rounded-lg object-cover border border-gray-200"
+          />
+        ) : (
+          <span className="text-sm text-gray-500">No image</span>
+        ),
+    },
+    {
+      key: "actions",
+      label: "Actions",
+      render: (row: any) => (
+        <div className="flex space-x-2">
+          <button
+            onClick={() => handleEditCategory(row)}
+            className="p-1 text-blue-500 hover:text-blue-600 transition-colors duration-200"
+            aria-label="Edit category"
+          >
+            <Pencil size={18} />
+          </button>
+          <button
+            onClick={() => handleDeletePrompt(row?.id)}
+            className="p-1 text-red-500 hover:text-red-600 transition-colors duration-200"
+            aria-label="Delete category"
+            disabled={isDeleting}
+          >
+            <Trash2 size={18} />
+          </button>
+        </div>
+      ),
+    },
+  ];
+
   return (
     <div className="max-w-7xl min-w-full px-4 py-8">
-      {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -132,7 +189,11 @@ const CategoriesDashboard = () => {
           </h1>
         </div>
         <button
-          onClick={() => setIsCreateModalOpen(true)}
+          onClick={() => {
+            setEditingCategory(null);
+            form.reset({ name: "", description: "", images: [] });
+            setIsCategoryModalOpen(true);
+          }}
           className="bg-indigo-500 text-white px-4 py-2 rounded-lg hover:bg-indigo-600 transition-colors duration-300 flex items-center space-x-2"
         >
           <Plus size={18} />
@@ -140,7 +201,6 @@ const CategoriesDashboard = () => {
         </button>
       </motion.div>
 
-      {/* Content */}
       {isLoading ? (
         <div className="text-center py-12">
           <Tag size={48} className="mx-auto text-gray-400 mb-4 animate-pulse" />
@@ -167,19 +227,20 @@ const CategoriesDashboard = () => {
         />
       )}
 
-      {/* Create Category Modal */}
-      <Modal
-        open={isCreateModalOpen}
-        onClose={() => setIsCreateModalOpen(false)}
-      >
+      <Modal open={isCategoryModalOpen} onClose={resetCategoryModal}>
         <h2 className="text-xl font-bold text-gray-800 mb-6">
-          Create Category
+          {editingCategory ? "Edit Category" : "Create Category"}
         </h2>
         <CategoryForm
           form={form}
           onSubmit={onSubmit}
-          isLoading={isCreating}
-          submitLabel="Create"
+          isLoading={isCreating || isUpdating}
+          submitLabel={editingCategory ? "Update" : "Create"}
+          existingImages={
+            editingCategory?.images?.filter(
+              (image): image is string => typeof image === "string"
+            ) || []
+          }
         />
       </Modal>
 

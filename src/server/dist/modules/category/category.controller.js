@@ -17,7 +17,6 @@ const asyncHandler_1 = __importDefault(require("@/shared/utils/asyncHandler"));
 const sendResponse_1 = __importDefault(require("@/shared/utils/sendResponse"));
 const logs_factory_1 = require("../logs/logs.factory");
 const uploadToCloudinary_1 = require("@/shared/utils/uploadToCloudinary");
-const slugify_1 = __importDefault(require("@/shared/utils/slugify"));
 class CategoryController {
     constructor(categoryService) {
         this.categoryService = categoryService;
@@ -40,7 +39,6 @@ class CategoryController {
         this.createCategory = (0, asyncHandler_1.default)((req, res) => __awaiter(this, void 0, void 0, function* () {
             var _a;
             const { name, description } = req.body;
-            const slugifiedName = (0, slugify_1.default)(name);
             const files = req.files;
             let imageUrls = [];
             if (Array.isArray(files) && files.length > 0) {
@@ -59,6 +57,47 @@ class CategoryController {
             const start = Date.now();
             const end = Date.now();
             this.logsService.info("Category created", {
+                userId: (_a = req.user) === null || _a === void 0 ? void 0 : _a.id,
+                sessionId: req.session.id,
+                timePeriod: end - start,
+            });
+        }));
+        this.updateCategory = (0, asyncHandler_1.default)((req, res) => __awaiter(this, void 0, void 0, function* () {
+            var _a;
+            const { id: categoryId } = req.params;
+            const { name, description } = req.body;
+            const files = req.files;
+            let uploadedImageUrls = [];
+            if (Array.isArray(files) && files.length > 0) {
+                const uploadedImages = yield (0, uploadToCloudinary_1.uploadToCloudinary)(files);
+                uploadedImageUrls = uploadedImages.map((img) => img.url).filter(Boolean);
+            }
+            let existingImages = [];
+            if (req.body.existingImages) {
+                try {
+                    const parsedImages = typeof req.body.existingImages === "string"
+                        ? JSON.parse(req.body.existingImages)
+                        : req.body.existingImages;
+                    if (Array.isArray(parsedImages)) {
+                        existingImages = parsedImages.filter((image) => typeof image === "string" && image.trim().length > 0);
+                    }
+                }
+                catch (_b) {
+                    existingImages = [];
+                }
+            }
+            const { category } = yield this.categoryService.updateCategory(categoryId, {
+                name,
+                description,
+                images: [...existingImages, ...uploadedImageUrls],
+            });
+            (0, sendResponse_1.default)(res, 200, {
+                data: { category },
+                message: "Category updated successfully",
+            });
+            const start = Date.now();
+            const end = Date.now();
+            this.logsService.info("Category updated", {
                 userId: (_a = req.user) === null || _a === void 0 ? void 0 : _a.id,
                 sessionId: req.session.id,
                 timePeriod: end - start,

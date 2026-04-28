@@ -126,6 +126,9 @@ export const productResolvers = {
         where,
         take: first,
         skip,
+        orderBy: {
+          createdAt: "desc",
+        },
         include: {
           category: true,
           variants: true,
@@ -174,6 +177,9 @@ export const productResolvers = {
         where: { isNew: true },
         take: first,
         skip,
+        orderBy: {
+          createdAt: "desc",
+        },
         include: {
           category: true,
           variants: true,
@@ -198,6 +204,9 @@ export const productResolvers = {
         where: { isFeatured: true },
         take: first,
         skip,
+        orderBy: {
+          createdAt: "desc",
+        },
         include: {
           category: true,
           variants: true,
@@ -222,6 +231,9 @@ export const productResolvers = {
         where: { isTrending: true },
         take: first,
         skip,
+        orderBy: {
+          createdAt: "desc",
+        },
         include: {
           category: true,
           variants: true,
@@ -246,6 +258,9 @@ export const productResolvers = {
         where: { isBestSeller: true },
         take: first,
         skip,
+        orderBy: {
+          createdAt: "desc",
+        },
         include: {
           category: true,
           variants: true,

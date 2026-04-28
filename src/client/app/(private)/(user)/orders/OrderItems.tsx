@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import Image from "next/image";
 import useFormatPrice from "@/app/hooks/ui/useFormatPrice";
 import { ShoppingCart } from "lucide-react";
+import { generateProductPlaceholder } from "@/app/utils/placeholderImage";
 
 // Helper function to format variant name from SKU
 const formatVariantName = (item: any) => {
@@ -14,6 +15,17 @@ const formatVariantName = (item: any) => {
   const parts = sku.split("-").slice(1); // Remove prefix (e.g., "TSH")
   const variantDetails = parts.join(", "); // Join color and size
   return `${name} - ${variantDetails}`;
+};
+
+const getOrderItemImage = (item: any) => {
+  const fallback = generateProductPlaceholder(item.variant.product.name);
+  const images = Array.isArray(item?.variant?.images) ? item.variant.images : [];
+  const validImage = images.find(
+    (image: unknown): image is string =>
+      typeof image === "string" && image.trim().length > 0
+  );
+
+  return validImage || fallback;
 };
 
 const OrderItems = ({ order }) => {
@@ -40,7 +52,7 @@ const OrderItems = ({ order }) => {
             {/* Variant Image */}
             <div className="flex items-center justify-center mr-4 overflow-hidden shadow-sm">
               <Image
-                src={item.variant.images[0]}
+                src={getOrderItemImage(item)}
                 alt={formatVariantName(item)}
                 width={50}
                 height={50}

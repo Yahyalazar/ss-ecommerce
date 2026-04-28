@@ -10,7 +10,10 @@
     "build": "tsc",
     "start": "node dist/server.js",
     "prisma": "prisma",
-    "seed": "ts-node seeds/seed.ts"
+    "seed": "ts-node seeds/seed.ts",
+    "generate:product-import-sample": "node scripts/generate-product-import-sample.js",
+    "generate:product-import-local-images": "node scripts/regenerate-products-workbook-local-images.js",
+    "generate:products-1000-homepage": "node scripts/generate-products-1000-homepage-ready.js"
   },
   "keywords": [],
   "author": "",

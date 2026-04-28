@@ -3,7 +3,6 @@ import asyncHandler from "@/shared/utils/asyncHandler";
 import sendResponse from "@/shared/utils/sendResponse";
 import { makeLogsService } from "../logs/logs.factory";
 import { uploadToCloudinary } from "@/shared/utils/uploadToCloudinary";
-import slugify from "@/shared/utils/slugify";
 import { CategoryService } from "./category.service";
 
 export class CategoryController {
@@ -34,7 +33,6 @@ export class CategoryController {
   createCategory = asyncHandler(
     async (req: Request, res: Response): Promise<void> => {
       const { name, description } = req.body;
-      const slugifiedName = slugify(name);
 
       const files = req.files as Express.Multer.File[];
 
@@ -57,6 +55,58 @@ export class CategoryController {
       const end = Date.now();
 
       this.logsService.info("Category created", {
+        userId: req.user?.id,
+        sessionId: req.session.id,
+        timePeriod: end - start,
+      });
+    }
+  );
+
+  updateCategory = asyncHandler(
+    async (req: Request, res: Response): Promise<void> => {
+      const { id: categoryId } = req.params;
+      const { name, description } = req.body;
+      const files = req.files as Express.Multer.File[];
+
+      let uploadedImageUrls: string[] = [];
+      if (Array.isArray(files) && files.length > 0) {
+        const uploadedImages = await uploadToCloudinary(files);
+        uploadedImageUrls = uploadedImages.map((img) => img.url).filter(Boolean);
+      }
+
+      let existingImages: string[] = [];
+      if (req.body.existingImages) {
+        try {
+          const parsedImages =
+            typeof req.body.existingImages === "string"
+              ? JSON.parse(req.body.existingImages)
+              : req.body.existingImages;
+
+          if (Array.isArray(parsedImages)) {
+            existingImages = parsedImages.filter(
+              (image): image is string =>
+                typeof image === "string" && image.trim().length > 0
+            );
+          }
+        } catch {
+          existingImages = [];
+        }
+      }
+
+      const { category } = await this.categoryService.updateCategory(categoryId, {
+        name,
+        description,
+        images: [...existingImages, ...uploadedImageUrls],
+      });
+
+      sendResponse(res, 200, {
+        data: { category },
+        message: "Category updated successfully",
+      });
+      const start = Date.now();
+      const end = Date.now();
+
+      this.logsService.info("Category updated", {
         userId: req.user?.id,
         sessionId: req.session.id,
         timePeriod: end - start,

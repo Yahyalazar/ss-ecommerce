@@ -82,6 +82,14 @@ router.post(
   categoryController.createCategory
 );
 
+router.put(
+  "/:id",
+  protect,
+  authorizeRole("ADMIN", "SUPERADMIN"),
+  upload.array("images", 5),
+  categoryController.updateCategory
+);
+
 /**
  * @swagger
  * /categories/{id}:

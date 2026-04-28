@@ -31,7 +31,6 @@ const CategoryForm: React.FC<CategoryFormProps> = ({
     control,
     handleSubmit,
     setValue,
-    watch,
     formState: { errors },
   } = form;
 
@@ -81,7 +80,7 @@ const CategoryForm: React.FC<CategoryFormProps> = ({
           />
           <Tag className="absolute left-3 top-3.5 text-gray-400" size={18} />
         </div>
-        {errors.name && (
+        {errors.description && (
           <p className="text-red-500 text-sm mt-1">
             {errors.description?.message}
           </p>
@@ -94,7 +93,6 @@ const CategoryForm: React.FC<CategoryFormProps> = ({
           control={control}
           errors={errors}
           setValue={setValue}
-          watch={watch}
           name="images"
           maxFiles={5}
           existingImages={existingImages}

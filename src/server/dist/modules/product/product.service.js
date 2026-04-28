@@ -364,44 +364,222 @@ class ProductService {
             if (records.length === 0) {
                 throw new AppError_1.default(400, "File is empty");
             }
-            const products = records.map((record) => {
-                if (!record.name || !record.basePrice) {
-                    throw new AppError_1.default(400, `Invalid record: ${JSON.stringify(record)}`);
+            const toBoolean = (value) => {
+                if (typeof value === "boolean")
+                    return value;
+                if (typeof value === "number")
+                    return value !== 0;
+                if (typeof value === "string") {
+                    return ["true", "1", "yes", "y"].includes(value.trim().toLowerCase());
                 }
+                return false;
+            };
+            const toOptionalString = (value) => {
+                if (value === undefined || value === null)
+                    return undefined;
+                const normalized = String(value).trim();
+                return normalized.length > 0 ? normalized : undefined;
+            };
+            const toImages = (value) => {
+                const normalized = toOptionalString(value);
+                if (!normalized)
+                    return [];
+                return normalized
+                    .split(/[\n,|]/)
+                    .map((item) => item.trim())
+                    .filter(Boolean);
+            };
+            const toRecordMap = (record) => Object.fromEntries(Object.entries(record).map(([key, value]) => [
+                key.trim().toLowerCase(),
+                value,
+            ]));
+            const categories = yield database_config_1.default.category.findMany({
+                include: {
+                    attributes: {
+                        include: {
+                            attribute: {
+                                include: {
+                                    values: true,
+                                },
+                            },
+                        },
+                    },
+                },
+            });
+            const categoryById = new Map(categories.map((category) => [category.id, category]));
+            const categoryBySlug = new Map(categories.map((category) => [category.slug.toLowerCase(), category]));
+            const categoryByName = new Map(categories.map((category) => [category.name.toLowerCase(), category]));
+            const normalizedRecords = records.map((rawRecord, index) => {
+                var _a, _b, _c, _d;
+                const rowNumber = index + 2;
+                const record = toRecordMap(rawRecord);
+                const name = toOptionalString(record.name);
+                const sku = toOptionalString(record.sku);
+                const price = Number(record.price);
+                const stock = Number((_a = record.stock) !== null && _a !== void 0 ? _a : 0);
+                const lowStockThreshold = Number((_b = record.lowstockthreshold) !== null && _b !== void 0 ? _b : 10);
+                if (!name) {
+                    throw new AppError_1.default(400, `Row ${rowNumber}: "name" is required`);
+                }
+                if (!sku) {
+                    throw new AppError_1.default(400, `Row ${rowNumber}: "sku" is required`);
+                }
+                if (!Number.isFinite(price) || price <= 0) {
+                    throw new AppError_1.default(400, `Row ${rowNumber}: "price" must be a positive number`);
+                }
+                if (!Number.isFinite(stock) || stock < 0) {
+                    throw new AppError_1.default(400, `Row ${rowNumber}: "stock" must be a non-negative number`);
+                }
+                if (!Number.isFinite(lowStockThreshold) || lowStockThreshold < 0) {
+                    throw new AppError_1.default(400, `Row ${rowNumber}: "lowStockThreshold" must be a non-negative number`);
+                }
+                const categoryId = toOptionalString(record.categoryid);
+                const categorySlug = (_c = toOptionalString(record.categoryslug)) === null || _c === void 0 ? void 0 : _c.toLowerCase();
+                const categoryName = (_d = toOptionalString(record.categoryname)) === null || _d === void 0 ? void 0 : _d.toLowerCase();
+                const category = (categoryId ? categoryById.get(categoryId) : undefined) ||
+                    (categorySlug ? categoryBySlug.get(categorySlug) : undefined) ||
+                    (categoryName ? categoryByName.get(categoryName) : undefined);
+                if (!category) {
+                    throw new AppError_1.default(400, `Row ${rowNumber}: provide a valid "categoryId", "categorySlug", or "categoryName"`);
+                }
+                const attributes = category.attributes.reduce((acc, categoryAttribute) => {
+                    var _a;
+                    const attribute = categoryAttribute.attribute;
+                    const rawValue = (_a = record[attribute.slug.toLowerCase()]) !== null && _a !== void 0 ? _a : record[attribute.name.toLowerCase()];
+                    const normalizedValue = toOptionalString(rawValue);
+                    if (!normalizedValue) {
+                        if (categoryAttribute.isRequired) {
+                            throw new AppError_1.default(400, `Row ${rowNumber}: "${attribute.slug}" is required for category "${category.name}"`);
+                        }
+                        return acc;
+                    }
+                    const matchedValue = attribute.values.find((value) => {
+                        const slug = value.slug.trim().toLowerCase();
+                        const label = value.value.trim().toLowerCase();
+                        const candidate = normalizedValue.trim().toLowerCase();
+                        return slug === candidate || label === candidate;
+                    });
+                    if (!matchedValue) {
+                        throw new AppError_1.default(400, `Row ${rowNumber}: invalid value "${normalizedValue}" for attribute "${attribute.slug}"`);
+                    }
+                    acc.push({
+                        attributeId: attribute.id,
+                        valueId: matchedValue.id,
+                    });
+                    return acc;
+                }, []);
                 return {
-                    name: String(record.name),
-                    slug: (0, slugify_1.default)(record.name),
-                    description: record.description
-                        ? String(record.description)
-                        : undefined,
-                    basePrice: Number(record.basePrice),
-                    discount: record.discount ? Number(record.discount) : 0,
-                    isNew: record.isNew ? Boolean(record.isNew) : false,
-                    isTrending: record.isTrending ? Boolean(record.isTrending) : false,
-                    isBestSeller: record.isBestSeller
-                        ? Boolean(record.isBestSeller)
-                        : false,
-                    isFeatured: record.isFeatured ? Boolean(record.isFeatured) : false,
-                    categoryId: record.categoryId ? String(record.categoryId) : undefined,
+                    rowNumber,
+                    name,
+                    normalizedName: name.toLowerCase(),
+                    slug: (0, slugify_1.default)(name),
+                    sku,
+                    normalizedSku: sku.toLowerCase(),
+                    price,
+                    stock,
+                    lowStockThreshold,
+                    category,
+                    description: toOptionalString(record.description),
+                    isNew: toBoolean(record.isnew),
+                    isTrending: toBoolean(record.istrending),
+                    isBestSeller: toBoolean(record.isbestseller),
+                    isFeatured: toBoolean(record.isfeatured),
+                    barcode: toOptionalString(record.barcode),
+                    warehouseLocation: toOptionalString(record.warehouselocation),
+                    images: toImages(record.images),
+                    attributes,
                 };
             });
-            const categoryIds = products
-                .filter((p) => p.categoryId)
-                .map((p) => p.categoryId);
-            if (categoryIds.length > 0) {
-                const existingCategories = yield database_config_1.default.category.findMany({
-                    where: { id: { in: categoryIds } },
-                    select: { id: true },
-                });
-                const validCategoryIds = new Set(existingCategories.map((c) => c.id));
-                for (const product of products) {
-                    if (product.categoryId && !validCategoryIds.has(product.categoryId)) {
-                        throw new AppError_1.default(400, `Invalid categoryId: ${product.categoryId}`);
+            const ensureNoDuplicatesInFile = (values, fieldName) => {
+                const seen = new Map();
+                for (const value of values) {
+                    const existing = seen.get(value.normalized);
+                    if (existing) {
+                        throw new AppError_1.default(400, `Duplicate ${fieldName} in file: "${value.label}" appears in rows ${existing.rowNumber} and ${value.rowNumber}`);
                     }
+                    seen.set(value.normalized, {
+                        rowNumber: value.rowNumber,
+                        label: value.label,
+                    });
+                }
+            };
+            ensureNoDuplicatesInFile(normalizedRecords.map((record) => ({
+                rowNumber: record.rowNumber,
+                normalized: record.normalizedSku,
+                label: record.sku,
+            })), "SKU");
+            ensureNoDuplicatesInFile(normalizedRecords.map((record) => ({
+                rowNumber: record.rowNumber,
+                normalized: record.normalizedName,
+                label: record.name,
+            })), "product name");
+            ensureNoDuplicatesInFile(normalizedRecords.map((record) => ({
+                rowNumber: record.rowNumber,
+                normalized: record.slug.toLowerCase(),
+                label: record.slug,
+            })), "product slug");
+            const [existingProducts, existingVariants] = yield Promise.all([
+                database_config_1.default.product.findMany({
+                    where: {
+                        OR: [
+                            { name: { in: normalizedRecords.map((record) => record.name) } },
+                            { slug: { in: normalizedRecords.map((record) => record.slug) } },
+                        ],
+                    },
+                    select: {
+                        name: true,
+                        slug: true,
+                    },
+                }),
+                database_config_1.default.productVariant.findMany({
+                    where: {
+                        sku: { in: normalizedRecords.map((record) => record.sku) },
+                    },
+                    select: {
+                        sku: true,
+                    },
+                }),
+            ]);
+            const existingNames = new Set(existingProducts.map((product) => product.name.toLowerCase()));
+            const existingSlugs = new Set(existingProducts.map((product) => product.slug.toLowerCase()));
+            const existingSkus = new Set(existingVariants.map((variant) => variant.sku.toLowerCase()));
+            for (const record of normalizedRecords) {
+                if (existingSkus.has(record.normalizedSku)) {
+                    throw new AppError_1.default(400, `Row ${record.rowNumber}: SKU "${record.sku}" already exists`);
+                }
+                if (existingNames.has(record.normalizedName)) {
+                    throw new AppError_1.default(400, `Row ${record.rowNumber}: product name "${record.name}" already exists`);
+                }
+                if (existingSlugs.has(record.slug.toLowerCase())) {
+                    throw new AppError_1.default(400, `Row ${record.rowNumber}: product slug "${record.slug}" already exists`);
                 }
             }
-            yield this.productRepository.createManyProducts(products);
-            return { count: products.length };
+            let createdCount = 0;
+            for (const record of normalizedRecords) {
+                yield this.createProduct({
+                    name: record.name,
+                    description: record.description,
+                    isNew: record.isNew,
+                    isTrending: record.isTrending,
+                    isBestSeller: record.isBestSeller,
+                    isFeatured: record.isFeatured,
+                    categoryId: record.category.id,
+                    variants: [
+                        {
+                            sku: record.sku,
+                            price: record.price,
+                            stock: record.stock,
+                            lowStockThreshold: record.lowStockThreshold,
+                            barcode: record.barcode,
+                            warehouseLocation: record.warehouseLocation,
+                            images: record.images,
+                            attributes: record.attributes,
+                        },
+                    ],
+                });
+                createdCount += 1;
+            }
+            return { count: createdCount };
         });
     }
     deleteProduct(productId) {

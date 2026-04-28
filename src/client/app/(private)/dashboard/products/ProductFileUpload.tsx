@@ -195,8 +195,12 @@ const ProductFileUpload = ({
       <div className="mt-3 flex items-center text-xs text-gray-500">
         <AlertCircle className="h-3 w-3 mr-1" />
         <span>
-          Make sure your file has the correct columns: name, price, discount,
-          stock, categoryId, description, and images (comma-separated URLs)
+          Use columns like name, categorySlug or categoryName, sku, price,
+          stock, images, description, isNew, isTrending, isBestSeller,
+          isFeatured, lowStockThreshold, barcode, warehouseLocation, plus
+          category attribute columns such as size, color, material, storage,
+          brand, or gender depending on your database setup. Images can be
+          separated with commas, new lines, or pipes.
         </span>
       </div>
     </div>

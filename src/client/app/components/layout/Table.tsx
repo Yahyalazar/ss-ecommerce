@@ -83,12 +83,12 @@ const Table: React.FC<TableProps> = ({
     setSortKey(key);
     setSortDirection(newSortDirection);
     const sortValue = `${key}:${newSortDirection}`;
-    updateQuery({ sort: sortValue });
+    updateQuery({ sort: sortValue, page: 1 });
   };
 
   const debouncedSearch = useCallback(
     debounce((searchQuery: string) => {
-      updateQuery({ searchQuery: searchQuery || "" });
+      updateQuery({ searchQuery: searchQuery || "", page: 1 });
     }, 300),
     [updateQuery] // Add updateQuery as a dependency
   );

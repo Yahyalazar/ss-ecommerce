@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
   useGetAllVariantsQuery,
   useRestockVariantMutation,
@@ -10,6 +10,7 @@ import useToast from "@/app/hooks/ui/useToast";
 import RestockModal from "./RestockModal";
 import RestockHistoryModal from "./RestockHistoryModal";
 import { withAuth } from "@/app/components/HOC/WithAuth";
+import useQueryParams from "@/app/hooks/network/useQueryParams";
 
 interface Variant {
   id: string;
@@ -31,10 +32,22 @@ interface Variant {
 
 const InventoryDashboard = () => {
   const { showToast } = useToast();
+  const { query } = useQueryParams();
   const [isRestockModalOpen, setIsRestockModalOpen] = useState(false);
   const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
   const [selectedVariant, setSelectedVariant] = useState<Variant | null>(null);
-  const { data, isLoading } = useGetAllVariantsQuery({});
+
+  const variantQueryParams = useMemo(
+    () => ({
+      page: query.page || "1",
+      limit: query.limit || "16",
+      sort: query.sort || undefined,
+      searchQuery: query.searchQuery || undefined,
+    }),
+    [query.limit, query.page, query.searchQuery, query.sort]
+  );
+
+  const { data, isLoading } = useGetAllVariantsQuery(variantQueryParams);
   console.log("data: ", data);
   const [restockVariant, { isLoading: isRestocking }] =
     useRestockVariantMutation();

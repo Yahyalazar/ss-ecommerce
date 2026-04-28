@@ -452,48 +452,318 @@ export class ProductService {
       throw new AppError(400, "File is empty");
     }
 
-    const products = records.map((record) => {
-      if (!record.name || !record.basePrice) {
-        throw new AppError(400, `Invalid record: ${JSON.stringify(record)}`);
+    const toBoolean = (value: unknown) => {
+      if (typeof value === "boolean") return value;
+      if (typeof value === "number") return value !== 0;
+      if (typeof value === "string") {
+        return ["true", "1", "yes", "y"].includes(value.trim().toLowerCase());
+      }
+      return false;
+    };
+
+    const toOptionalString = (value: unknown) => {
+      if (value === undefined || value === null) return undefined;
+      const normalized = String(value).trim();
+      return normalized.length > 0 ? normalized : undefined;
+    };
+
+    const toImages = (value: unknown) => {
+      const normalized = toOptionalString(value);
+      if (!normalized) return [] as string[];
+
+      return normalized
+        .split(/[\n,|]/)
+        .map((item) => item.trim())
+        .filter(Boolean);
+    };
+
+    const toRecordMap = (record: Record<string, unknown>) =>
+      Object.fromEntries(
+        Object.entries(record).map(([key, value]) => [
+          key.trim().toLowerCase(),
+          value,
+        ])
+      ) as Record<string, unknown>;
+
+    const categories = await prisma.category.findMany({
+      include: {
+        attributes: {
+          include: {
+            attribute: {
+              include: {
+                values: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    const categoryById = new Map(categories.map((category) => [category.id, category]));
+    const categoryBySlug = new Map(
+      categories.map((category) => [category.slug.toLowerCase(), category])
+    );
+    const categoryByName = new Map(
+      categories.map((category) => [category.name.toLowerCase(), category])
+    );
+
+    const normalizedRecords = records.map((rawRecord, index) => {
+      const rowNumber = index + 2;
+      const record = toRecordMap(rawRecord as Record<string, unknown>);
+
+      const name = toOptionalString(record.name);
+      const sku = toOptionalString(record.sku);
+      const price = Number(record.price);
+      const stock = Number(record.stock ?? 0);
+      const lowStockThreshold = Number(record.lowstockthreshold ?? 10);
+
+      if (!name) {
+        throw new AppError(400, `Row ${rowNumber}: "name" is required`);
       }
 
+      if (!sku) {
+        throw new AppError(400, `Row ${rowNumber}: "sku" is required`);
+      }
+
+      if (!Number.isFinite(price) || price <= 0) {
+        throw new AppError(
+          400,
+          `Row ${rowNumber}: "price" must be a positive number`
+        );
+      }
+
+      if (!Number.isFinite(stock) || stock < 0) {
+        throw new AppError(
+          400,
+          `Row ${rowNumber}: "stock" must be a non-negative number`
+        );
+      }
+
+      if (!Number.isFinite(lowStockThreshold) || lowStockThreshold < 0) {
+        throw new AppError(
+          400,
+          `Row ${rowNumber}: "lowStockThreshold" must be a non-negative number`
+        );
+      }
+
+      const categoryId = toOptionalString(record.categoryid);
+      const categorySlug = toOptionalString(record.categoryslug)?.toLowerCase();
+      const categoryName = toOptionalString(record.categoryname)?.toLowerCase();
+
+      const category =
+        (categoryId ? categoryById.get(categoryId) : undefined) ||
+        (categorySlug ? categoryBySlug.get(categorySlug) : undefined) ||
+        (categoryName ? categoryByName.get(categoryName) : undefined);
+
+      if (!category) {
+        throw new AppError(
+          400,
+          `Row ${rowNumber}: provide a valid "categoryId", "categorySlug", or "categoryName"`
+        );
+      }
+
+      const attributes = category.attributes.reduce(
+        (acc, categoryAttribute) => {
+          const attribute = categoryAttribute.attribute;
+          const rawValue =
+            record[attribute.slug.toLowerCase()] ??
+            record[attribute.name.toLowerCase()];
+
+          const normalizedValue = toOptionalString(rawValue);
+
+          if (!normalizedValue) {
+            if (categoryAttribute.isRequired) {
+              throw new AppError(
+                400,
+                `Row ${rowNumber}: "${attribute.slug}" is required for category "${category.name}"`
+              );
+            }
+
+            return acc;
+          }
+
+          const matchedValue = attribute.values.find((value) => {
+            const slug = value.slug.trim().toLowerCase();
+            const label = value.value.trim().toLowerCase();
+            const candidate = normalizedValue.trim().toLowerCase();
+
+            return slug === candidate || label === candidate;
+          });
+
+          if (!matchedValue) {
+            throw new AppError(
+              400,
+              `Row ${rowNumber}: invalid value "${normalizedValue}" for attribute "${attribute.slug}"`
+            );
+          }
+
+          acc.push({
+            attributeId: attribute.id,
+            valueId: matchedValue.id,
+          });
+
+          return acc;
+        },
+        [] as { attributeId: string; valueId: string }[]
+      );
+
       return {
-        name: String(record.name),
-        slug: slugify(record.name),
-        description: record.description
-          ? String(record.description)
-          : undefined,
-        basePrice: Number(record.basePrice),
-        discount: record.discount ? Number(record.discount) : 0,
-        isNew: record.isNew ? Boolean(record.isNew) : false,
-        isTrending: record.isTrending ? Boolean(record.isTrending) : false,
-        isBestSeller: record.isBestSeller
-          ? Boolean(record.isBestSeller)
-          : false,
-        isFeatured: record.isFeatured ? Boolean(record.isFeatured) : false,
-        categoryId: record.categoryId ? String(record.categoryId) : undefined,
+        rowNumber,
+        name,
+        normalizedName: name.toLowerCase(),
+        slug: slugify(name),
+        sku,
+        normalizedSku: sku.toLowerCase(),
+        price,
+        stock,
+        lowStockThreshold,
+        category,
+        description: toOptionalString(record.description),
+        isNew: toBoolean(record.isnew),
+        isTrending: toBoolean(record.istrending),
+        isBestSeller: toBoolean(record.isbestseller),
+        isFeatured: toBoolean(record.isfeatured),
+        barcode: toOptionalString(record.barcode),
+        warehouseLocation: toOptionalString(record.warehouselocation),
+        images: toImages(record.images),
+        attributes,
       };
     });
 
-    const categoryIds = products
-      .filter((p) => p.categoryId)
-      .map((p) => p.categoryId!);
-    if (categoryIds.length > 0) {
-      const existingCategories = await prisma.category.findMany({
-        where: { id: { in: categoryIds } },
-        select: { id: true },
-      });
-      const validCategoryIds = new Set(existingCategories.map((c) => c.id));
-      for (const product of products) {
-        if (product.categoryId && !validCategoryIds.has(product.categoryId)) {
-          throw new AppError(400, `Invalid categoryId: ${product.categoryId}`);
+    const ensureNoDuplicatesInFile = (
+      values: { rowNumber: number; normalized: string; label: string }[],
+      fieldName: string
+    ) => {
+      const seen = new Map<string, { rowNumber: number; label: string }>();
+
+      for (const value of values) {
+        const existing = seen.get(value.normalized);
+        if (existing) {
+          throw new AppError(
+            400,
+            `Duplicate ${fieldName} in file: "${value.label}" appears in rows ${existing.rowNumber} and ${value.rowNumber}`
+          );
         }
+
+        seen.set(value.normalized, {
+          rowNumber: value.rowNumber,
+          label: value.label,
+        });
+      }
+    };
+
+    ensureNoDuplicatesInFile(
+      normalizedRecords.map((record) => ({
+        rowNumber: record.rowNumber,
+        normalized: record.normalizedSku,
+        label: record.sku,
+      })),
+      "SKU"
+    );
+
+    ensureNoDuplicatesInFile(
+      normalizedRecords.map((record) => ({
+        rowNumber: record.rowNumber,
+        normalized: record.normalizedName,
+        label: record.name,
+      })),
+      "product name"
+    );
+
+    ensureNoDuplicatesInFile(
+      normalizedRecords.map((record) => ({
+        rowNumber: record.rowNumber,
+        normalized: record.slug.toLowerCase(),
+        label: record.slug,
+      })),
+      "product slug"
+    );
+
+    const [existingProducts, existingVariants] = await Promise.all([
+      prisma.product.findMany({
+        where: {
+          OR: [
+            { name: { in: normalizedRecords.map((record) => record.name) } },
+            { slug: { in: normalizedRecords.map((record) => record.slug) } },
+          ],
+        },
+        select: {
+          name: true,
+          slug: true,
+        },
+      }),
+      prisma.productVariant.findMany({
+        where: {
+          sku: { in: normalizedRecords.map((record) => record.sku) },
+        },
+        select: {
+          sku: true,
+        },
+      }),
+    ]);
+
+    const existingNames = new Set(
+      existingProducts.map((product) => product.name.toLowerCase())
+    );
+    const existingSlugs = new Set(
+      existingProducts.map((product) => product.slug.toLowerCase())
+    );
+    const existingSkus = new Set(
+      existingVariants.map((variant) => variant.sku.toLowerCase())
+    );
+
+    for (const record of normalizedRecords) {
+      if (existingSkus.has(record.normalizedSku)) {
+        throw new AppError(
+          400,
+          `Row ${record.rowNumber}: SKU "${record.sku}" already exists`
+        );
+      }
+
+      if (existingNames.has(record.normalizedName)) {
+        throw new AppError(
+          400,
+          `Row ${record.rowNumber}: product name "${record.name}" already exists`
+        );
+      }
+
+      if (existingSlugs.has(record.slug.toLowerCase())) {
+        throw new AppError(
+          400,
+          `Row ${record.rowNumber}: product slug "${record.slug}" already exists`
+        );
       }
     }
 
-    await this.productRepository.createManyProducts(products);
+    let createdCount = 0;
 
-    return { count: products.length };
+    for (const record of normalizedRecords) {
+      await this.createProduct({
+        name: record.name,
+        description: record.description,
+        isNew: record.isNew,
+        isTrending: record.isTrending,
+        isBestSeller: record.isBestSeller,
+        isFeatured: record.isFeatured,
+        categoryId: record.category.id,
+        variants: [
+          {
+            sku: record.sku,
+            price: record.price,
+            stock: record.stock,
+            lowStockThreshold: record.lowStockThreshold,
+            barcode: record.barcode,
+            warehouseLocation: record.warehouseLocation,
+            images: record.images,
+            attributes: record.attributes,
+          },
+        ],
+      });
+
+      createdCount += 1;
+    }
+
+    return { count: createdCount };
   }
 
   async deleteProduct(productId: string) {

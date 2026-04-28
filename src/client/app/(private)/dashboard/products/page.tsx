@@ -15,6 +15,8 @@ import ProductFileUpload from "./ProductFileUpload";
 import { usePathname } from "next/navigation";
 import { ProductFormData } from "./product.types";
 import { withAuth } from "@/app/components/HOC/WithAuth";
+import useQueryParams from "@/app/hooks/network/useQueryParams";
+import { useMemo } from "react";
 
 const ProductsDashboard = () => {
   const { showToast } = useToast();
@@ -26,9 +28,20 @@ const ProductsDashboard = () => {
 
   const pathname = usePathname();
   const shouldFetchProducts = pathname === "/dashboard/products";
+  const { query } = useQueryParams();
+
+  const productQueryParams = useMemo(
+    () => ({
+      page: query.page || "1",
+      limit: query.limit || "16",
+      sort: query.sort || undefined,
+      searchQuery: query.searchQuery || undefined,
+    }),
+    [query.limit, query.page, query.searchQuery, query.sort]
+  );
 
   const { data, isLoading } = useGetAllProductsQuery(
-    { select: { variants: true } }, // Ensure variants are included
+    productQueryParams,
     { skip: !shouldFetchProducts }
   );
   const products = data?.products || [];

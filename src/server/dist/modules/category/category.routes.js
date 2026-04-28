@@ -76,6 +76,7 @@ router.get("/:id", categoryController.getCategory);
  *         description: Forbidden. User does not have the required role.
  */
 router.post("/", protect_1.default, (0, authorizeRole_1.default)("ADMIN", "SUPERADMIN"), upload_1.default.array("images", 5), categoryController.createCategory);
+router.put("/:id", protect_1.default, (0, authorizeRole_1.default)("ADMIN", "SUPERADMIN"), upload_1.default.array("images", 5), categoryController.updateCategory);
 /**
  * @swagger
  * /categories/{id}:

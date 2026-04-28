@@ -3,6 +3,7 @@ import authorizeRole from "@/shared/middlewares/authorizeRole";
 import protect from "@/shared/middlewares/protect";
 import { makeProductController } from "./product.factory";
 import upload from "@/shared/middlewares/upload";
+import bulkFileUpload from "@/shared/middlewares/bulkFileUpload";
 
 const router = express.Router();
 const productController = makeProductController();
@@ -188,7 +189,7 @@ router.post(
   "/bulk",
   protect,
   authorizeRole("ADMIN", "SUPERADMIN"),
-  upload.single("file"),
+  bulkFileUpload.single("file"),
   productController.bulkCreateProducts
 );
 

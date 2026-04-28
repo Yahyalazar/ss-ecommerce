@@ -8,6 +8,7 @@ const authorizeRole_1 = __importDefault(require("@/shared/middlewares/authorizeR
 const protect_1 = __importDefault(require("@/shared/middlewares/protect"));
 const product_factory_1 = require("./product.factory");
 const upload_1 = __importDefault(require("@/shared/middlewares/upload"));
+const bulkFileUpload_1 = __importDefault(require("@/shared/middlewares/bulkFileUpload"));
 const router = express_1.default.Router();
 const productController = (0, product_factory_1.makeProductController)();
 /**
@@ -170,7 +171,7 @@ router.post("/", protect_1.default, (0, authorizeRole_1.default)("ADMIN", "SUPER
  *       403:
  *         description: Forbidden. User does not have the required role.
  */
-router.post("/bulk", protect_1.default, (0, authorizeRole_1.default)("ADMIN", "SUPERADMIN"), upload_1.default.single("file"), productController.bulkCreateProducts);
+router.post("/bulk", protect_1.default, (0, authorizeRole_1.default)("ADMIN", "SUPERADMIN"), bulkFileUpload_1.default.single("file"), productController.bulkCreateProducts);
 /**
  * @swagger
  * /products/{id}:

@@ -1,4 +1,5 @@
 import multer from "multer";
+import AppError from "@/shared/errors/AppError";
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -9,7 +10,7 @@ const upload = multer({
   fileFilter: (req, file, cb) => {
     const allowedTypes = ["image/jpeg", "image/png", "image/gif", "image/webp"];
     if (!allowedTypes.includes(file.mimetype)) {
-      return cb(new Error("Only images are allowed"));
+      return cb(new AppError(400, "Only images are allowed"));
     }
     cb(null, true);
   },
